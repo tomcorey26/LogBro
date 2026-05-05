@@ -29,13 +29,32 @@ describe('POST /api/routines/[id]/start', () => {
     expect(res.status).toBe(404);
   });
 
-  it('returns 409 with code when conflict', async () => {
+  it('returns 409 with code when active timer conflict', async () => {
     getSessionUserId.mockResolvedValue(1);
     startRoutineSessionForUser.mockResolvedValue({ conflict: 'active_timer_exists' });
     const res = await POST(req(), { params: Promise.resolve({ id: '1' }) });
     expect(res.status).toBe(409);
     const body = await res.json();
     expect(body.code).toBe('active_timer_exists');
+  });
+
+  it('returns 409 with code when active session conflict', async () => {
+    getSessionUserId.mockResolvedValue(1);
+    startRoutineSessionForUser.mockResolvedValue({ conflict: 'active_session_exists' });
+    const res = await POST(req(), { params: Promise.resolve({ id: '1' }) });
+    expect(res.status).toBe(409);
+    const body = await res.json();
+    expect(body.code).toBe('active_session_exists');
+  });
+
+  it('returns 409 with code when routine is empty', async () => {
+    getSessionUserId.mockResolvedValue(1);
+    startRoutineSessionForUser.mockResolvedValue({ conflict: 'empty_routine' });
+    const res = await POST(req(), { params: Promise.resolve({ id: '1' }) });
+    expect(res.status).toBe(409);
+    const body = await res.json();
+    expect(body.code).toBe('empty_routine');
+    expect(body.error).toBe('Routine has no sets');
   });
 
   it('returns 201 with session', async () => {

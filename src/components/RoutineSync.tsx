@@ -29,15 +29,22 @@ export function RoutineSync() {
   // Replay-forward / natural-completion driver
   useEffect(() => {
     if (!activeTimer) return;
+    const timer = activeTimer;
     let cancelled = false;
     async function tick() {
       if (cancelled || advancingRef.current) return;
-      const action = computeReplayForward(activeTimer, new Date());
+      const action = computeReplayForward(timer, new Date());
       if (action.action === 'stable') return;
       advancingRef.current = true;
       try {
         if (action.action === 'complete-set') {
-          await completeSet.mutateAsync({ setRowId: action.setRowId });
+          // Use the timer's intended end (start + target) instead of letting the server
+          // fall back to new Date(), which would bake network latency into the duration.
+          const endedAt = new Date(
+            new Date(timer.startTime).getTime() +
+              timer.targetDurationSeconds * 1000,
+          ).toISOString();
+          await completeSet.mutateAsync({ setRowId: action.setRowId, endedEarlyAt: endedAt });
           sendBrowserNotification('Set complete', 'Break starting');
         } else {
           await completeBreak.mutateAsync();

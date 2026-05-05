@@ -1,9 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { getSessionUserId, deleteHabitForUser, habitIsInActiveRoutineSession } = vi.hoisted(() => ({
+const { getSessionUserId, deleteHabitForUserGuarded } = vi.hoisted(() => ({
   getSessionUserId: vi.fn(),
-  deleteHabitForUser: vi.fn(),
-  habitIsInActiveRoutineSession: vi.fn(),
+  deleteHabitForUserGuarded: vi.fn(),
 }));
 
 vi.mock("@/lib/auth", () => ({
@@ -11,11 +10,7 @@ vi.mock("@/lib/auth", () => ({
 }));
 
 vi.mock("@/server/db/habits", () => ({
-  deleteHabitForUser,
-}));
-
-vi.mock("@/server/db/routine-sessions", () => ({
-  habitIsInActiveRoutineSession,
+  deleteHabitForUserGuarded,
 }));
 
 import { DELETE } from "./route";
@@ -39,8 +34,7 @@ describe("DELETE /api/habits/[id]", () => {
     const response = await DELETE(makeRequest(), makeParams("1"));
 
     expect(response.status).toBe(401);
-    expect(habitIsInActiveRoutineSession).not.toHaveBeenCalled();
-    expect(deleteHabitForUser).not.toHaveBeenCalled();
+    expect(deleteHabitForUserGuarded).not.toHaveBeenCalled();
   });
 
   it("returns 400 when id is invalid", async () => {
@@ -49,13 +43,12 @@ describe("DELETE /api/habits/[id]", () => {
     const response = await DELETE(makeRequest(), makeParams("not-a-number"));
 
     expect(response.status).toBe(400);
-    expect(habitIsInActiveRoutineSession).not.toHaveBeenCalled();
-    expect(deleteHabitForUser).not.toHaveBeenCalled();
+    expect(deleteHabitForUserGuarded).not.toHaveBeenCalled();
   });
 
   it("returns 409 when habit is in use by active routine session", async () => {
     getSessionUserId.mockResolvedValue(42);
-    habitIsInActiveRoutineSession.mockResolvedValue(true);
+    deleteHabitForUserGuarded.mockResolvedValue({ ok: false, reason: "habit_in_use" });
 
     const response = await DELETE(makeRequest(), makeParams("7"));
 
@@ -63,13 +56,12 @@ describe("DELETE /api/habits/[id]", () => {
     const body = await response.json();
     expect(body.code).toBe("habit_in_use");
     expect(body.error).toBe("Habit is in use by your active routine");
-    expect(deleteHabitForUser).not.toHaveBeenCalled();
+    expect(deleteHabitForUserGuarded).toHaveBeenCalledWith(7, 42);
   });
 
   it("returns 404 when habit is not found", async () => {
     getSessionUserId.mockResolvedValue(42);
-    habitIsInActiveRoutineSession.mockResolvedValue(false);
-    deleteHabitForUser.mockResolvedValue(null);
+    deleteHabitForUserGuarded.mockResolvedValue({ ok: false, reason: "not_found" });
 
     const response = await DELETE(makeRequest(), makeParams("7"));
 
@@ -79,13 +71,15 @@ describe("DELETE /api/habits/[id]", () => {
 
   it("returns 200 when habit is deleted", async () => {
     getSessionUserId.mockResolvedValue(42);
-    habitIsInActiveRoutineSession.mockResolvedValue(false);
-    deleteHabitForUser.mockResolvedValue({ id: 7, userId: 42, name: "Coding" });
+    deleteHabitForUserGuarded.mockResolvedValue({
+      ok: true,
+      habit: { id: 7, userId: 42, name: "Coding" },
+    });
 
     const response = await DELETE(makeRequest(), makeParams("7"));
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ ok: true });
-    expect(deleteHabitForUser).toHaveBeenCalledWith(7, 42);
+    expect(deleteHabitForUserGuarded).toHaveBeenCalledWith(7, 42);
   });
 });

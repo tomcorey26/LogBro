@@ -6,7 +6,7 @@ import { patchSetForUser } from '@/server/db/routine-sessions';
 const bodySchema = z.object({
   plannedDurationSeconds: z.number().int().min(60).max(7200).optional(),
   plannedBreakSeconds: z.number().int().min(0).max(3600).optional(),
-  actualDurationSeconds: z.number().int().min(0).max(7200).optional(),
+  actualDurationSeconds: z.number().int().min(1).max(7200).optional(),
 });
 
 export async function PATCH(

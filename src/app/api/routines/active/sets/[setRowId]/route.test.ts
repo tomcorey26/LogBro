@@ -32,6 +32,12 @@ describe('PATCH /api/routines/active/sets/[setRowId]', () => {
     expect(res.status).toBe(400);
   });
 
+  it('rejects actualDurationSeconds: 0', async () => {
+    getSessionUserId.mockResolvedValue(1);
+    const res = await PATCH(req({ actualDurationSeconds: 0 }), { params: Promise.resolve({ setRowId: '1' }) });
+    expect(res.status).toBe(400);
+  });
+
   it('returns 404 when set not found', async () => {
     getSessionUserId.mockResolvedValue(1);
     patchSetForUser.mockResolvedValue(null);

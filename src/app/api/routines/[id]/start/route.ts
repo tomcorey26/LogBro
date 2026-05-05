@@ -16,11 +16,13 @@ export async function POST(
 
   const result = await startRoutineSessionForUser(userId, routineId);
   if (!result) return NextResponse.json({ error: 'Routine not found' }, { status: 404 });
-  if ('conflict' in result)
-    return NextResponse.json(
-      { error: 'Active timer exists', code: result.conflict },
-      { status: 409 },
-    );
+  if ('conflict' in result) {
+    const error =
+      result.conflict === 'empty_routine'
+        ? 'Routine has no sets'
+        : 'Active timer exists';
+    return NextResponse.json({ error, code: result.conflict }, { status: 409 });
+  }
 
   return NextResponse.json({ session: result }, { status: 201 });
 }

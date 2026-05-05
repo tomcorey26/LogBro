@@ -31,6 +31,14 @@ function rowToSet(row: typeof routineSessionSets.$inferSelect): RoutineSessionSe
   };
 }
 
+function deriveFinishedAt(rows: { completedAt: Date }[]): Date {
+  let max = rows[0].completedAt;
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i].completedAt.getTime() > max.getTime()) max = rows[i].completedAt;
+  }
+  return max;
+}
+
 function rowToTimer(
   row: typeof activeTimers.$inferSelect | undefined,
 ): RoutineSessionActiveTimer | null {
@@ -49,11 +57,20 @@ function rowToTimer(
 export async function startRoutineSessionForUser(
   userId: number,
   routineId: number,
-): Promise<ActiveRoutineSession | { conflict: 'active_timer_exists' } | null> {
-  const routine = await getRoutineById(routineId, userId);
-  if (!routine) return null;
-
+): Promise<
+  | ActiveRoutineSession
+  | { conflict: 'active_timer_exists' | 'active_session_exists' | 'empty_routine' }
+  | null
+> {
   return db.transaction(async (tx) => {
+    const routine = await getRoutineById(routineId, userId, tx);
+    if (!routine) return null;
+
+    // Defense-in-depth: API validation enforces min(1) blocks/sets, but reject empty
+    // routines at the DB layer too — an empty session can only be Discarded.
+    const snapshot = snapshotRoutineToSets(routine);
+    if (snapshot.length === 0) return { conflict: 'empty_routine' as const };
+
     const existingTimer = await tx
       .select({ id: activeTimers.id })
       .from(activeTimers)
@@ -66,7 +83,7 @@ export async function startRoutineSessionForUser(
       .from(routineSessions)
       .where(and(eq(routineSessions.userId, userId), eq(routineSessions.status, 'active')))
       .get();
-    if (existingSession) return { conflict: 'active_timer_exists' as const };
+    if (existingSession) return { conflict: 'active_session_exists' as const };
 
     const now = new Date();
     const [session] = await tx
@@ -80,13 +97,11 @@ export async function startRoutineSessionForUser(
       })
       .returning();
 
-    const inserts = snapshotRoutineToSets(routine).map((s) => ({
+    const inserts = snapshot.map((s) => ({
       sessionId: session.id,
       ...s,
     }));
-    if (inserts.length > 0) {
-      await tx.insert(routineSessionSets).values(inserts);
-    }
+    await tx.insert(routineSessionSets).values(inserts);
 
     return await reloadActiveSession(tx, userId);
   });
@@ -94,26 +109,24 @@ export async function startRoutineSessionForUser(
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
-async function reloadActiveSession(
-  tx: Tx,
+async function loadActiveSession(
+  conn: typeof db | Tx,
   userId: number,
 ): Promise<ActiveRoutineSession | null> {
-  // Same body as getActiveRoutineSessionForUser but using `tx`. Inline-duplicated
-  // to avoid a public signature change on the existing helper.
-  const session = await tx
+  const session = await conn
     .select()
     .from(routineSessions)
     .where(and(eq(routineSessions.userId, userId), eq(routineSessions.status, 'active')))
     .get();
   if (!session) return null;
-  const setRows = await tx
+  const setRows = await conn
     .select()
     .from(routineSessionSets)
     .where(eq(routineSessionSets.sessionId, session.id));
   const sortedSets = setRows
     .map(rowToSet)
     .sort((a, b) => a.blockIndex - b.blockIndex || a.setIndex - b.setIndex);
-  const timerRow = await tx
+  const timerRow = await conn
     .select()
     .from(activeTimers)
     .where(eq(activeTimers.userId, userId))
@@ -129,41 +142,13 @@ async function reloadActiveSession(
     activeTimer: rowToTimer(timerRow),
   };
 }
+
+const reloadActiveSession = loadActiveSession;
+
 export async function getActiveRoutineSessionForUser(
   userId: number,
 ): Promise<ActiveRoutineSession | null> {
-  const session = await db
-    .select()
-    .from(routineSessions)
-    .where(and(eq(routineSessions.userId, userId), eq(routineSessions.status, 'active')))
-    .get();
-  if (!session) return null;
-
-  const setRows = await db
-    .select()
-    .from(routineSessionSets)
-    .where(eq(routineSessionSets.sessionId, session.id));
-
-  const sortedSets = setRows
-    .map(rowToSet)
-    .sort((a, b) => a.blockIndex - b.blockIndex || a.setIndex - b.setIndex);
-
-  const timerRow = await db
-    .select()
-    .from(activeTimers)
-    .where(eq(activeTimers.userId, userId))
-    .get();
-
-  return {
-    id: session.id,
-    routineId: session.routineId,
-    routineNameSnapshot: session.routineNameSnapshot,
-    status: session.status as 'active' | 'completed',
-    startedAt: session.startedAt.toISOString(),
-    finishedAt: session.finishedAt?.toISOString() ?? null,
-    sets: sortedSets,
-    activeTimer: rowToTimer(timerRow),
-  };
+  return db.transaction((tx) => loadActiveSession(tx, userId));
 }
 export async function discardActiveRoutineSessionForUser(
   userId: number,
@@ -187,29 +172,38 @@ export async function buildSummaryForUser(
   | { ok: true; summary: import('@/lib/types').RoutineSessionSummary }
   | { ok: false; reason: 'no_active_session' | 'no_completed_sets' }
 > {
-  const session = await db
-    .select()
-    .from(routineSessions)
-    .where(and(eq(routineSessions.userId, userId), eq(routineSessions.status, 'active')))
-    .get();
-  if (!session) return { ok: false, reason: 'no_active_session' };
+  return db.transaction(async (tx) => {
+    const session = await tx
+      .select()
+      .from(routineSessions)
+      .where(and(eq(routineSessions.userId, userId), eq(routineSessions.status, 'active')))
+      .get();
+    if (!session) return { ok: false as const, reason: 'no_active_session' as const };
 
-  const setRows = await db
-    .select()
-    .from(routineSessionSets)
-    .where(eq(routineSessionSets.sessionId, session.id));
+    const setRows = await tx
+      .select()
+      .from(routineSessionSets)
+      .where(eq(routineSessionSets.sessionId, session.id));
 
-  const sets = setRows.map(rowToSet);
-  const completed = sets.filter((s) => (s.actualDurationSeconds ?? 0) > 0);
-  if (completed.length === 0) return { ok: false, reason: 'no_completed_sets' };
+    const completedRows = setRows.filter(
+      (r): r is typeof r & { completedAt: Date } =>
+        r.completedAt !== null && (r.actualDurationSeconds ?? 0) > 0,
+    );
+    if (completedRows.length === 0)
+      return { ok: false as const, reason: 'no_completed_sets' as const };
 
-  const summary = computeSummary({
-    routineNameSnapshot: session.routineNameSnapshot,
-    sets,
-    startedAt: session.startedAt.toISOString(),
-    finishedAt: new Date().toISOString(),
+    // Derive finishedAt as the latest completedAt across sets, so summary and the
+    // persisted record always agree (no drift from per-call new Date()).
+    const finishedAt = deriveFinishedAt(completedRows);
+
+    const summary = computeSummary({
+      routineNameSnapshot: session.routineNameSnapshot,
+      sets: setRows.map(rowToSet),
+      startedAt: session.startedAt.toISOString(),
+      finishedAt: finishedAt.toISOString(),
+    });
+    return { ok: true as const, summary };
   });
-  return { ok: true, summary };
 }
 
 export async function saveActiveRoutineSessionForUser(
@@ -230,27 +224,34 @@ export async function saveActiveRoutineSessionForUser(
       .select()
       .from(routineSessionSets)
       .where(eq(routineSessionSets.sessionId, session.id));
-    const completed = setRows.filter((r) => (r.actualDurationSeconds ?? 0) > 0 && r.habitId !== null);
+    const completed = setRows.filter(
+      (r): r is typeof r & { completedAt: Date; habitId: number } =>
+        r.completedAt !== null && (r.actualDurationSeconds ?? 0) > 0 && r.habitId !== null,
+    );
     if (completed.length === 0) return { ok: false, reason: 'no_completed_sets' as const };
 
     const now = new Date();
-    for (const r of completed) {
+    const inserts = completed.map((r) => {
       const start = r.startedAt ?? new Date(now.getTime() - (r.actualDurationSeconds ?? 0) * 1000);
       const end = new Date(start.getTime() + (r.actualDurationSeconds ?? 0) * 1000);
-      await tx.insert(timeSessions).values({
-        habitId: r.habitId!,
+      return {
+        habitId: r.habitId,
         userId,
         startTime: start,
         endTime: end,
         durationSeconds: r.actualDurationSeconds!,
         timerMode: 'routine',
         routineSessionId: session.id,
-      });
-    }
+      };
+    });
+    await tx.insert(timeSessions).values(inserts).onConflictDoNothing();
 
+    // Persist finishedAt derived from the latest set completion so it matches the
+    // value the summary endpoint reports.
+    const finishedAt = deriveFinishedAt(completed);
     await tx
       .update(routineSessions)
-      .set({ status: 'completed', finishedAt: now })
+      .set({ status: 'completed', finishedAt })
       .where(eq(routineSessions.id, session.id));
 
     await tx.delete(activeTimers).where(eq(activeTimers.userId, userId));
@@ -341,8 +342,10 @@ export async function completeSetForUser(
     const now = endedAt ?? new Date();
 
     // Compute actual duration: prefer the timer for cleanest math; fall back to set.startedAt.
+    // Floor at 1s so a completed set always has nonzero duration — otherwise the row passes
+    // the "completed" UI check but is filtered out of save/summary, silently losing data.
     const startedAt = setRow.startedAt ?? timerRow?.startTime ?? now;
-    const elapsed = Math.max(0, Math.ceil((now.getTime() - startedAt.getTime()) / 1000));
+    const elapsed = Math.max(1, Math.ceil((now.getTime() - startedAt.getTime()) / 1000));
     const actualDurationSeconds = Math.min(elapsed, setRow.plannedDurationSeconds);
 
     await tx
@@ -405,7 +408,6 @@ export async function patchSetForUser(
 
     const isUpcoming = !setRow.startedAt;
     const isCompleted = !!setRow.completedAt;
-    const isRunning = !!setRow.startedAt && !setRow.completedAt;
 
     const update: Partial<typeof routineSessionSets.$inferInsert> = {};
     if (patch.plannedDurationSeconds !== undefined) {
@@ -417,7 +419,7 @@ export async function patchSetForUser(
       update.plannedBreakSeconds = patch.plannedBreakSeconds;
     }
     if (patch.actualDurationSeconds !== undefined) {
-      if (!isCompleted || isRunning) return { conflict: 'set_locked' as const };
+      if (!isCompleted) return { conflict: 'set_locked' as const };
       update.actualDurationSeconds = patch.actualDurationSeconds;
     }
 
@@ -449,21 +451,6 @@ export async function userHasActiveRoutineSession(userId: number): Promise<boole
     .select({ id: routineSessions.id })
     .from(routineSessions)
     .where(and(eq(routineSessions.userId, userId), eq(routineSessions.status, 'active')))
-    .get();
-  return !!row;
-}
-export async function habitIsInActiveRoutineSession(userId: number, habitId: number): Promise<boolean> {
-  const row = await db
-    .select({ id: routineSessionSets.id })
-    .from(routineSessionSets)
-    .innerJoin(routineSessions, eq(routineSessions.id, routineSessionSets.sessionId))
-    .where(
-      and(
-        eq(routineSessions.userId, userId),
-        eq(routineSessions.status, 'active'),
-        eq(routineSessionSets.habitId, habitId),
-      ),
-    )
     .get();
   return !!row;
 }

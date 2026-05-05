@@ -84,6 +84,9 @@ export const activeTimers = sqliteTable('active_timers', {
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
   startTime: integer('start_time', { mode: 'timestamp' }).notNull(),
   targetDurationSeconds: integer('target_duration_seconds'),
+  // NOTE: cascade is aspirational — the live constraint is NO ACTION because
+  // SQLite's `ALTER TABLE ADD COLUMN ... REFERENCES` (used in 0006) drops the
+  // ON DELETE clause. Runtime cleanup is handled in routine-sessions.ts.
   routineSessionSetId: integer('routine_session_set_id').references(() => routineSessionSets.id, { onDelete: 'cascade' }),
   phase: text('phase'),
 });
