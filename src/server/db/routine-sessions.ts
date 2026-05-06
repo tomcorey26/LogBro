@@ -240,7 +240,7 @@ export async function saveActiveRoutineSessionForUser(
         startTime: start,
         endTime: end,
         durationSeconds: r.actualDurationSeconds!,
-        timerMode: 'routine',
+        timerMode: 'routine' as const,
         routineSessionId: session.id,
       };
     });
@@ -339,6 +339,10 @@ export async function completeSetForUser(
     if (!set) return null;
     const setRow = set.routine_session_sets;
 
+    // Idempotency guard: a stale setRowId (replayed request, unmount/remount race
+    // in RoutineSync) must not overwrite a completed set's recorded duration.
+    if (setRow.completedAt) return null;
+
     const now = endedAt ?? new Date();
 
     // Compute actual duration: prefer the timer for cleanest math; fall back to set.startedAt.
@@ -420,7 +424,10 @@ export async function patchSetForUser(
     }
     if (patch.actualDurationSeconds !== undefined) {
       if (!isCompleted) return { conflict: 'set_locked' as const };
-      update.actualDurationSeconds = patch.actualDurationSeconds;
+      // Floor at 1: a completed set with 0s gets filtered out of save/summary
+      // (>0 check), making the row exist on disk but invisible to the user. The
+      // route enforces min(1), but this is defense-in-depth for direct callers.
+      update.actualDurationSeconds = Math.max(1, patch.actualDurationSeconds);
     }
 
     if (Object.keys(update).length === 0) return await reloadActiveSession(tx, userId);

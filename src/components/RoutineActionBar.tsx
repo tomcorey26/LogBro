@@ -94,6 +94,13 @@ export function RoutineActionBar() {
   }
 
   const currentSetIndex = (() => {
+    // During break, activeTimer.routineSessionSetId points to the just-completed
+    // set. Show the next upcoming set instead so "Resting" reads as "what's next."
+    if (activeTimer?.phase === 'break') {
+      const nextIdle = session.sets.findIndex((s) => !s.completedAt);
+      if (nextIdle >= 0) return nextIdle;
+      // Last set's break has no successor; fall through to the timer's set.
+    }
     if (activeTimer) {
       const idx = session.sets.findIndex((s) => s.id === activeTimer.routineSessionSetId);
       return idx >= 0 ? idx : 0;

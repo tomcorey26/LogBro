@@ -61,6 +61,10 @@ export function RoutineSync() {
     return () => {
       cancelled = true;
       clearInterval(id);
+      // Reset on unmount: the in-flight mutateAsync survives unmount, so its
+      // `finally` won't fire until later. Without this, a remount before the
+      // mutate resolves would early-return every tick on the stale `true`.
+      advancingRef.current = false;
     };
   }, [activeTimer, completeSet, completeBreak]);
 

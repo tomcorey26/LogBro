@@ -22,7 +22,7 @@ export const timeSessions = sqliteTable('time_sessions', {
   startTime: integer('start_time', { mode: 'timestamp' }).notNull(),
   endTime: integer('end_time', { mode: 'timestamp' }).notNull(),
   durationSeconds: integer('duration_seconds').notNull(),
-  timerMode: text('timer_mode').notNull().$default(() => 'stopwatch'),
+  timerMode: text('timer_mode').notNull().$type<'stopwatch' | 'countdown' | 'manual' | 'routine'>().$default(() => 'stopwatch'),
   routineSessionId: integer('routine_session_id').references(() => routineSessions.id, { onDelete: 'set null' }),
 }, (table) => [
   uniqueIndex('time_sessions_user_start_uniq').on(table.userId, table.startTime),

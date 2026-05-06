@@ -46,8 +46,13 @@ export function RoutineDetailView({
   }
 
   async function startNewAfterDiscard() {
-    await discardSession.mutateAsync();
-    await startSession.mutateAsync(routineId);
+    try {
+      await discardSession.mutateAsync();
+      await startSession.mutateAsync(routineId);
+    } catch {
+      toast.error('Could not start routine');
+      return;
+    }
     setConflictOpen(false);
     router.push(`/routines/${routineId}/active`);
   }
@@ -126,6 +131,7 @@ export function RoutineDetailView({
           setConflictOpen(false);
         }}
         onStartNew={startNewAfterDiscard}
+        pending={discardSession.isPending || startSession.isPending}
       />
     </div>
   );

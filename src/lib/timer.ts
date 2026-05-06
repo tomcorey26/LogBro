@@ -27,8 +27,8 @@ export function buildSessionFromTimer(timer: TimerData, now: Date) {
   const elapsed = Math.ceil(
     (now.getTime() - timer.startTime.getTime()) / 1000
   );
-  const timerMode =
-    timer.targetDurationSeconds !== null ? "countdown" : "stopwatch";
+  const timerMode: 'countdown' | 'stopwatch' =
+    timer.targetDurationSeconds !== null ? 'countdown' : 'stopwatch';
   const durationSeconds = computeSessionDuration(
     elapsed,
     timer.targetDurationSeconds

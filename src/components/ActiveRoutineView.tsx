@@ -86,7 +86,12 @@ export function ActiveRoutineView() {
     trigger('error');
     setDiscardOpen(false);
     setNoCompletedOpen(false);
-    await discard.mutateAsync();
+    try {
+      await discard.mutateAsync();
+    } catch {
+      toast.error('Could not discard routine');
+      return;
+    }
     setSummary(null);
     reset();
     router.push('/routines');

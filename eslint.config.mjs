@@ -15,10 +15,14 @@ const eslintConfig = defineConfig([
   },
   // Override default ignores of eslint-config-next.
   globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
+    ".worktrees/**",
+    "**/.next/**",
+    "**/out/**",
+    "**/build/**",
+    "coverage/**",
+    "test-results/**",
+    "playwright-report/**",
+    ".vercel/**",
     "next-env.d.ts",
   ]),
 ]);

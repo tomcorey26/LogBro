@@ -97,6 +97,38 @@ describe('RoutineActionBar', () => {
     expect(screen.getByRole('button', { name: /skip break/i })).toBeInTheDocument();
   });
 
+  it('during break, label points to the upcoming (not just-completed) set', () => {
+    useRoutineSessionStore.getState().hydrate({
+      id: 1, routineId: 1, routineNameSnapshot: 'M', status: 'active',
+      startedAt: '', finishedAt: null,
+      sets: [
+        { id: 1, sessionId: 1, blockIndex: 0, setIndex: 0, habitId: 1, habitNameSnapshot: 'Guitar', notesSnapshot: null, plannedDurationSeconds: 60, plannedBreakSeconds: 30, actualDurationSeconds: 60, startedAt: '2026-05-02T00:00:00Z', completedAt: '2026-05-02T00:01:00Z' },
+        { id: 2, sessionId: 1, blockIndex: 0, setIndex: 1, habitId: 1, habitNameSnapshot: 'Guitar', notesSnapshot: null, plannedDurationSeconds: 60, plannedBreakSeconds: 0, actualDurationSeconds: null, startedAt: null, completedAt: null },
+        { id: 3, sessionId: 1, blockIndex: 0, setIndex: 2, habitId: 1, habitNameSnapshot: 'Guitar', notesSnapshot: null, plannedDurationSeconds: 60, plannedBreakSeconds: 0, actualDurationSeconds: null, startedAt: null, completedAt: null },
+      ],
+      // Timer's routineSessionSetId == 1 (the just-completed set), but during
+      // break we want the UI to advance to set 2.
+      activeTimer: { routineSessionSetId: 1, phase: 'break', startTime: '2026-05-02T00:01:00Z', targetDurationSeconds: 30 },
+    });
+    render(<RoutineActionBar />);
+    expect(screen.getByText(/Set 2 of 3/i)).toBeInTheDocument();
+  });
+
+  it('during break of the last set, label still shows that set (no next)', () => {
+    useRoutineSessionStore.getState().hydrate({
+      id: 1, routineId: 1, routineNameSnapshot: 'M', status: 'active',
+      startedAt: '', finishedAt: null,
+      sets: [
+        { id: 1, sessionId: 1, blockIndex: 0, setIndex: 0, habitId: 1, habitNameSnapshot: 'Guitar', notesSnapshot: null, plannedDurationSeconds: 60, plannedBreakSeconds: 30, actualDurationSeconds: 60, startedAt: '2026-05-02T00:00:00Z', completedAt: '2026-05-02T00:01:00Z' },
+        { id: 2, sessionId: 1, blockIndex: 0, setIndex: 1, habitId: 1, habitNameSnapshot: 'Guitar', notesSnapshot: null, plannedDurationSeconds: 60, plannedBreakSeconds: 30, actualDurationSeconds: 60, startedAt: '2026-05-02T00:01:30Z', completedAt: '2026-05-02T00:02:30Z' },
+      ],
+      // All sets complete, but break of last set is still running.
+      activeTimer: { routineSessionSetId: 2, phase: 'break', startTime: '2026-05-02T00:02:30Z', targetDurationSeconds: 30 },
+    });
+    render(<RoutineActionBar />);
+    expect(screen.getByText(/Set 2 of 2/i)).toBeInTheDocument();
+  });
+
   it('shows "Routine complete" + Finish button when every set is completed', () => {
     useRoutineSessionStore.getState().hydrate({
       id: 1, routineId: 1, routineNameSnapshot: 'M', status: 'active',

@@ -17,7 +17,7 @@ export type HistoryEntry = {
   startTime: string;
   endTime: string;
   durationSeconds: number;
-  timerMode: string;
+  timerMode: 'stopwatch' | 'countdown' | 'manual' | 'routine';
 };
 
 export type RoutineSet = {
