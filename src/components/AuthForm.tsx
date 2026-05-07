@@ -56,23 +56,23 @@ function FloatingEmojis() {
   );
 }
 
+const usernameSchema = z
+  .string()
+  .min(3, "Username must be at least 3 characters")
+  .max(32, "Username must be at most 32 characters")
+  .regex(
+    /^[a-zA-Z0-9_-]+$/,
+    "Letters, digits, underscores, and hyphens only",
+  );
+
 const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email is required")
-    .email("Enter a valid email address"),
+  username: usernameSchema,
   password: z.string().min(1, "Password is required"),
 });
 
 const signupSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email is required")
-    .email("Enter a valid email address"),
-  password: z
-    .string()
-    .min(1, "Password is required")
-    .min(8, "Password must be at least 8 characters"),
+  username: usernameSchema,
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 type FormData = z.infer<typeof signupSchema>;
@@ -109,11 +109,11 @@ export function AuthForm() {
         trigger("error");
         if (err instanceof ApiError) {
           if (err.status === 409) {
-            setError("email", {
-              message: "An account with this email already exists",
+            setError("username", {
+              message: "An account with this username already exists",
             });
           } else if (err.status === 401) {
-            setError("root", { message: "Invalid email or password" });
+            setError("root", { message: "Invalid username or password" });
           } else {
             setError("root", { message: err.message });
           }
@@ -136,18 +136,22 @@ export function AuthForm() {
     <>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="username">Username</Label>
           <Input
-            id="email"
-            type="email"
-            {...register("email")}
-            aria-invalid={!!errors.email}
-            aria-describedby={errors.email ? "email-error" : undefined}
+            id="username"
+            type="text"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            autoComplete="username"
+            {...register("username")}
+            aria-invalid={!!errors.username}
+            aria-describedby={errors.username ? "username-error" : undefined}
             className="bg-background"
           />
-          {errors.email && (
-            <p id="email-error" className="text-sm text-destructive">
-              {errors.email.message}
+          {errors.username && (
+            <p id="username-error" className="text-sm text-destructive">
+              {errors.username.message}
             </p>
           )}
         </div>

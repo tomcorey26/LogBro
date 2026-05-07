@@ -16,8 +16,8 @@ export default function AccountPage() {
     <div className="space-y-6">
       <PageHeader title="Account" />
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input id="email" type="email" value={user?.email ?? ''} readOnly />
+        <Label htmlFor="username">Username</Label>
+        <Input id="username" type="text" value={user?.username ?? ''} readOnly />
       </div>
     </div>
   );

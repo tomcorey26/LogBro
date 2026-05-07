@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyPassword, setSessionCookie } from "@/lib/auth";
-import { getUserByEmail } from "@/server/db/users";
+import { getUserByUsername } from "@/server/db/users";
 
 const loginSchema = z.object({
-  email: z.email(),
+  username: z
+    .string()
+    .min(3)
+    .max(32)
+    .regex(/^[a-zA-Z0-9_-]+$/),
   password: z.string(),
 });
 
@@ -20,12 +24,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  const { email, password } = parsed.data;
+  const username = parsed.data.username.toLowerCase();
+  const { password } = parsed.data;
 
-  const user = await getUserByEmail(email);
+  const user = await getUserByUsername(username);
   if (!user) {
     return NextResponse.json(
-      { error: "Invalid email or password" },
+      { error: "Invalid username or password" },
       { status: 401 },
     );
   }
@@ -33,11 +38,11 @@ export async function POST(request: Request) {
   const valid = await verifyPassword(password, user.passwordHash);
   if (!valid) {
     return NextResponse.json(
-      { error: "Invalid email or password" },
+      { error: "Invalid username or password" },
       { status: 401 },
     );
   }
 
   await setSessionCookie(user.id);
-  return NextResponse.json({ id: user.id, email: user.email });
+  return NextResponse.json({ id: user.id, username: user.username });
 }
