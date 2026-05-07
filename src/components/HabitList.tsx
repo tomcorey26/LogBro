@@ -24,7 +24,7 @@ export function HabitList({
           No habits match your search.
         </p>
       ) : (
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 pb-6">
           {sorted.map((habit, index) => (
             <div
               key={habit.id}
