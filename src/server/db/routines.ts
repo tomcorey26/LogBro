@@ -267,7 +267,14 @@ const DEFAULT_ROUTINE = {
   name: "Daily Practice",
   blocks: [
     { habitName: "Coding", sets: [{ durationSeconds: 2700, breakSeconds: 0 }] },
-    { habitName: "Guitar", sets: [{ durationSeconds: 1800, breakSeconds: 0 }] },
+    {
+      habitName: "Guitar",
+      sets: [
+        { durationSeconds: 600, breakSeconds: 120 },
+        { durationSeconds: 600, breakSeconds: 120 },
+        { durationSeconds: 600, breakSeconds: 0 },
+      ],
+    },
     { habitName: "Reading", sets: [{ durationSeconds: 900, breakSeconds: 0 }] },
   ],
 };
