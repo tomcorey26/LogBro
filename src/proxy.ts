@@ -58,7 +58,7 @@ export async function proxy(request: NextRequest) {
 
   // Redirect authenticated users away from /login
   if (session && AUTH_ROUTES.includes(pathname)) {
-    return NextResponse.redirect(new URL('/habits', request.url));
+    return NextResponse.redirect(new URL('/routines', request.url));
   }
 
   return NextResponse.next();
