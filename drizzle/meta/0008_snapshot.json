@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "fe5e1dc5-c97e-41ad-bfdc-c0884ed7419a",
+  "id": "9bc8917c-30bc-450a-8f0a-bbbc8cc5398d",
   "prevId": "78a030d2-82d7-4441-81c6-0d290997d276",
   "tables": {
     "active_timers": {

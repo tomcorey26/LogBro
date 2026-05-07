@@ -62,21 +62,7 @@
       "idx": 8,
       "version": "6",
       "when": 1778115427468,
-      "tag": "0008_rename_email_to_username",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "6",
-      "when": 1778117500000,
-      "tag": "0009_lowercase_usernames",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "6",
-      "when": 1778117600000,
-      "tag": "0010_remove_legacy_email_users",
+      "tag": "0008_username_login",
       "breakpoints": true
     }
   ]
