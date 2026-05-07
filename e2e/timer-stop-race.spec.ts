@@ -3,6 +3,11 @@ import { createHabit, startTimer, stopTimer, deleteAllHabits, trackStopCalls } f
 
 const HABIT_NAME = 'E2E-Race';
 
+// All tests in this file share one auth state (one user) and reuse the same
+// habit name. Run serially to avoid 409 conflicts on createHabit and races on
+// the user's single active timer row.
+test.describe.configure({ mode: 'serial' });
+
 test.describe('Timer stop race condition', () => {
   let habitId: number;
 

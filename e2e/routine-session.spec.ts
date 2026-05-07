@@ -50,13 +50,16 @@ test.describe('Routine Session', () => {
     await page.getByRole('button', { name: /^start routine$/i }).click();
     await expect(page).toHaveURL(new RegExp(`/routines/${routineId}/active$`));
 
+    // Scope to main — the bottom toolbar duplicates Start set / End set buttons.
+    const main = page.getByRole('main');
+
     // Start first set (uses aria-label "Start set")
-    await page.getByRole('button', { name: /^start set$/i }).first().click();
+    await main.getByRole('button', { name: /^start set$/i }).first().click();
     // End it early
-    await page.getByRole('button', { name: /^end set$/i }).click();
+    await main.getByRole('button', { name: /^end set$/i }).click();
 
     // Wait for the second set's start button to be enabled
-    await expect(page.getByRole('button', { name: /^start set$/i })).toBeEnabled();
+    await expect(main.getByRole('button', { name: /^start set$/i })).toBeEnabled();
 
     // Finish (toolbar button labeled "Finish")
     await page.getByRole('button', { name: /^finish$/i }).click();
@@ -102,14 +105,15 @@ test.describe('Routine Session', () => {
       'E2E Refresh Routine',
     );
 
+    const main = page.getByRole('main');
     await page.goto(`/routines/${routineId}`);
     await page.getByRole('button', { name: /^start routine$/i }).click();
-    await page.getByRole('button', { name: /^start set$/i }).first().click();
-    await expect(page.getByRole('button', { name: /^end set$/i })).toBeVisible();
+    await main.getByRole('button', { name: /^start set$/i }).first().click();
+    await expect(main.getByRole('button', { name: /^end set$/i })).toBeVisible();
 
     await page.reload();
 
-    await expect(page.getByRole('button', { name: /^end set$/i })).toBeVisible();
+    await expect(main.getByRole('button', { name: /^end set$/i })).toBeVisible();
   });
 
   test('habit start buttons disabled during active routine', async ({ page }) => {
