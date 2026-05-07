@@ -8,7 +8,7 @@ const TABS = [
   { href: '/routines', label: 'Routines' },
   { href: '/habits', label: 'Habits' },
   { href: '/history', label: 'History' },
-  { href: '/rankings', label: 'Rankings' },
+  { href: '/stats', label: 'Stats' },
 ];
 
 export function TabNav({ orientation = 'horizontal' }: { orientation?: 'horizontal' | 'vertical' }) {

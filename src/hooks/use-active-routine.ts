@@ -55,7 +55,7 @@ export function useSaveRoutineSession() {
       invalidate(qc);
       qc.invalidateQueries({ queryKey: queryKeys.history.all });
       qc.invalidateQueries({ queryKey: queryKeys.habits.all });
-      qc.invalidateQueries({ queryKey: queryKeys.rankings.all });
+      qc.invalidateQueries({ queryKey: queryKeys.stats.all });
     },
   });
 }

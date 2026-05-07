@@ -46,7 +46,7 @@ export function useStopTimer() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.habits.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.history.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.rankings.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.stats.all });
     },
   });
 }

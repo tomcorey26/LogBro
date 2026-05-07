@@ -26,7 +26,7 @@ LogBro is a PWA I built to scratch my own itch — I wanted a simple way to time
 - **Routines** — Stack skills into daily practice blocks (guitar 30 min, coding 45 min, reading 15 min) like sets in a workout
 - **Timer** — Stopwatch mode for flow state, countdown mode for focused blocks. Just hit play
 - **Streaks** — Daily streaks keep you accountable. Show up, log your time, keep the chain going
-- **Rankings** — See your skills ranked by total hours logged. Calendar heat maps show your consistency
+- **Stats** — Dashboard with lifetime totals, weekly/monthly time, streaks, a year-long practice heat map, and rankings of your skills by total hours
 - **Sessions** — Full history of every practice session with duration, date, and mode
 
 ## Tech Stack
