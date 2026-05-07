@@ -27,8 +27,8 @@ test.describe('Stats dashboard', () => {
 
     await expect(page.getByRole('heading', { name: 'Stats' })).toBeVisible();
     await expect(page.getByText('Lifetime')).toBeVisible();
-    await expect(page.getByText('This week')).toBeVisible();
-    await expect(page.getByText('This month')).toBeVisible();
+    await expect(page.getByText('Last 7 days')).toBeVisible();
+    await expect(page.getByText('Last 30 days')).toBeVisible();
     await expect(page.getByText('Streaks')).toBeVisible();
     await expect(page.getByText('Last 12 months')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Rankings' })).toBeVisible();

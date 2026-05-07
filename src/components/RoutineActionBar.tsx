@@ -67,28 +67,32 @@ export function RoutineActionBar() {
         tabIndex={0}
         onClick={handleNavigate}
         onKeyDown={handleNavigateKey}
-        className="w-full px-4 py-3 bg-success/15 border-t border-success/40 flex items-center justify-between hover:bg-success/20 transition-colors cursor-pointer"
+        className="w-full pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] bg-success/15 border-t border-success/40 hover:bg-success/20 transition-colors cursor-pointer"
         aria-label="Open completed routine"
       >
-        <div className="flex items-center gap-2 min-w-0">
-          <Trophy className="h-4 w-4 text-success shrink-0" />
-          <div className="flex flex-col items-start min-w-0">
-            <span className="font-semibold text-sm text-success">
-              Routine complete
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {totalSets} {totalSets === 1 ? 'set' : 'sets'} done
-            </span>
+        <div className="md:ml-52 px-4 md:px-6">
+          <div className="w-full md:max-w-2xl md:mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-2 min-w-0">
+              <Trophy className="h-4 w-4 text-success shrink-0" />
+              <div className="flex flex-col items-start min-w-0">
+                <span className="font-semibold text-sm text-success">
+                  Routine complete
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {totalSets} {totalSets === 1 ? 'set' : 'sets'} done
+                </span>
+              </div>
+            </div>
+            <PressableButton
+              size="sm"
+              onClick={handleFinish}
+              disabled={finish.isPending}
+              className="bg-success hover:bg-success/90 text-success-foreground shadow-[0_5px_0_0_color-mix(in_srgb,var(--color-success)_70%,black)] active:shadow-none active:translate-y-1.25"
+            >
+              {finish.isPending ? 'Finishing...' : 'Finish'}
+            </PressableButton>
           </div>
         </div>
-        <PressableButton
-          size="sm"
-          onClick={handleFinish}
-          disabled={finish.isPending}
-          className="bg-success hover:bg-success/90 text-success-foreground shadow-[0_5px_0_0_color-mix(in_srgb,var(--color-success)_70%,black)] active:shadow-none active:translate-y-1.25"
-        >
-          {finish.isPending ? 'Finishing...' : 'Finish'}
-        </PressableButton>
       </div>
     );
   }
@@ -144,53 +148,57 @@ export function RoutineActionBar() {
       tabIndex={0}
       onClick={handleNavigate}
       onKeyDown={handleNavigateKey}
-      className="w-full px-4 py-3 bg-primary/10 border-t border-primary/30 flex items-center justify-between hover:bg-primary/15 transition-colors cursor-pointer"
+      className="w-full pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] bg-primary/10 border-t border-primary/30 hover:bg-primary/15 transition-colors cursor-pointer"
       aria-label="Open active routine"
     >
-      <div className="flex flex-col items-start min-w-0">
-        <span className="font-semibold text-sm truncate max-w-[60vw]">
-          {currentSet?.habitNameSnapshot ?? session.routineNameSnapshot} — Set {currentSetIndex + 1} of {totalSets}
-        </span>
-        <span className="text-xs text-muted-foreground">{phaseLabel}</span>
+      <div className="md:ml-52 px-4 md:px-6">
+        <div className="w-full md:max-w-2xl md:mx-auto flex items-center justify-between">
+          <div className="flex flex-col items-start min-w-0">
+            <span className="font-semibold text-sm truncate max-w-[60vw]">
+              {currentSet?.habitNameSnapshot ?? session.routineNameSnapshot} — Set {currentSetIndex + 1} of {totalSets}
+            </span>
+            <span className="text-xs text-muted-foreground">{phaseLabel}</span>
+          </div>
+          {isIdle ? (
+            <PressableButton
+              size="icon-sm"
+              onClick={handleStartSet}
+              disabled={startSet.isPending}
+              aria-label={`Start set ${currentSetIndex + 1}`}
+            >
+              <Play className="h-3.5 w-3.5" />
+            </PressableButton>
+          ) : isBreakRunning ? (
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-sm text-info font-semibold">{displayTime}</span>
+              <PressableButton
+                size="icon-sm"
+                onClick={handleSkipBreak}
+                disabled={skipBreak.isPending}
+                aria-label="Skip break"
+                className="bg-info hover:bg-info/90 text-info-foreground shadow-[0_5px_0_0_color-mix(in_srgb,var(--color-info)_70%,black)] active:shadow-none active:translate-y-1.25"
+              >
+                <SkipForward className="h-3.5 w-3.5" />
+              </PressableButton>
+            </div>
+          ) : isSetRunning ? (
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-sm text-primary font-semibold">{displayTime}</span>
+              <PressableButton
+                size="icon-sm"
+                variant="destructive"
+                onClick={handleEndSet}
+                disabled={completeSet.isPending}
+                aria-label="End set"
+              >
+                <Square className="h-3.5 w-3.5" />
+              </PressableButton>
+            </div>
+          ) : (
+            <span className="font-mono text-sm">{displayTime}</span>
+          )}
+        </div>
       </div>
-      {isIdle ? (
-        <PressableButton
-          size="icon-sm"
-          onClick={handleStartSet}
-          disabled={startSet.isPending}
-          aria-label={`Start set ${currentSetIndex + 1}`}
-        >
-          <Play className="h-3.5 w-3.5" />
-        </PressableButton>
-      ) : isBreakRunning ? (
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-sm text-info font-semibold">{displayTime}</span>
-          <PressableButton
-            size="icon-sm"
-            onClick={handleSkipBreak}
-            disabled={skipBreak.isPending}
-            aria-label="Skip break"
-            className="bg-info hover:bg-info/90 text-info-foreground shadow-[0_5px_0_0_color-mix(in_srgb,var(--color-info)_70%,black)] active:shadow-none active:translate-y-1.25"
-          >
-            <SkipForward className="h-3.5 w-3.5" />
-          </PressableButton>
-        </div>
-      ) : isSetRunning ? (
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-sm text-primary font-semibold">{displayTime}</span>
-          <PressableButton
-            size="icon-sm"
-            variant="destructive"
-            onClick={handleEndSet}
-            disabled={completeSet.isPending}
-            aria-label="End set"
-          >
-            <Square className="h-3.5 w-3.5" />
-          </PressableButton>
-        </div>
-      ) : (
-        <span className="font-mono text-sm">{displayTime}</span>
-      )}
     </div>
   );
 }

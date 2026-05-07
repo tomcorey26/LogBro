@@ -38,6 +38,7 @@ import { useTimerStore } from "@/stores/timer-store";
 import { ApiError } from "@/lib/api";
 import { formatTime, getElapsedSeconds } from "@/lib/format";
 import { getRandomCongratsMessage } from "@/lib/congrats-messages";
+import { useTour } from "@/tours/useTour";
 import type { Habit } from "@/lib/types";
 
 function playFanfare() {
@@ -133,6 +134,57 @@ function SuccessScreen({ durationSeconds }: { durationSeconds: number }) {
   );
 }
 
+function ActiveTimerListItem({
+  habit,
+  onClick,
+}: {
+  habit: Habit;
+  onClick: () => void;
+}) {
+  const activeTimer = habit.activeTimer!;
+  const isCountdown = activeTimer.targetDurationSeconds !== null;
+  const displayTime = useTimerStore((s) => s.displayTime);
+  const isTimesUp = useTimerStore((s) => s.isTimesUp);
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      className="flex items-center gap-3 px-3 py-3 rounded-xl bg-primary/10 border border-primary cursor-pointer hover:bg-primary/15 transition-colors"
+    >
+      <div className="flex-1 min-w-0">
+        <span className="text-sm font-semibold text-foreground block truncate">
+          {habit.name}
+        </span>
+        <div className="flex items-center gap-2 mt-0.5">
+          {isTimesUp ? (
+            <span className="text-xs font-semibold text-primary">
+              Time&apos;s up!
+            </span>
+          ) : (
+            <>
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="text-xs text-muted-foreground">
+                {isCountdown ? "Counting down..." : "Recording..."}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+      <span className="text-lg font-mono font-light text-primary shrink-0">
+        {displayTime}
+      </span>
+    </div>
+  );
+}
+
 type ViewMode = "list" | "grid";
 
 function getInitialViewMode(): ViewMode {
@@ -174,6 +226,12 @@ export function Dashboard({
 
   const view = useTimerStore((s) => s.view);
   const activeTimer = useTimerStore((s) => s.activeTimer);
+
+  const showHabitsList =
+    view.type !== "timer_config" &&
+    view.type !== "active_timer" &&
+    view.type !== "success";
+  useTour("habits", { enabled: showHabitsList });
   const openConfig = useTimerStore((s) => s.openConfig);
   const closeConfig = useTimerStore((s) => s.closeConfig);
   const startTimer = useTimerStore((s) => s.startTimer);
@@ -422,6 +480,13 @@ export function Dashboard({
       {viewMode === "list" ? (
         <HabitList
           habits={filteredHabits}
+          activeHabitId={activeTimer?.habitId ?? null}
+          renderActive={(habit) => (
+            <ActiveTimerListItem
+              habit={habit}
+              onClick={() => useTimerStore.getState().showActiveTimer()}
+            />
+          )}
           renderDetail={(habit) => (
             <div className="flex items-center gap-3 mt-0.5">
               <span className="text-xs text-primary font-mono">
@@ -472,9 +537,10 @@ export function Dashboard({
             <div className="mb-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <AnimatePresence initial={false}>
-                  {filteredHabits.map((habit) => (
+                  {filteredHabits.map((habit, index) => (
                     <motion.div
                       key={habit.id}
+                      data-tour={index === 0 ? "habits-first-card" : undefined}
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}

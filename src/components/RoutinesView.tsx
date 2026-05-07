@@ -8,6 +8,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +22,7 @@ import {
 import { useRoutines, useDeleteRoutine } from "@/hooks/use-routines";
 import { useActiveRoutine } from "@/hooks/use-active-routine";
 import { useHaptics } from "@/hooks/use-haptics";
+import { useTour } from "@/tours/useTour";
 import type { Routine } from "@/lib/types";
 
 const MAX_VISIBLE_BLOCKS = 3;
@@ -173,11 +175,13 @@ export function RoutinesView({
   const { data: routines } = useRoutines(initialRoutines);
   const { data: active } = useActiveRoutine();
 
+  useTour("routines");
+
   return (
-    <div>
+    <PageContainer>
       <div className="flex items-center justify-between">
         <PageHeader title="Routines" />
-        <Link href="/routines/new">
+        <Link href="/routines/new" data-tour="routines-new-button">
           <Button size="sm">
             <Plus className="h-4 w-4 mr-1" />
             New Routine
@@ -202,15 +206,19 @@ export function RoutinesView({
         </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {routines.map((routine) => (
-            <RoutineCard
+          {routines.map((routine, index) => (
+            <div
               key={routine.id}
-              routine={routine}
-              isActive={active?.routineId === routine.id}
-            />
+              data-tour={index === 0 ? "routines-first-card" : undefined}
+            >
+              <RoutineCard
+                routine={routine}
+                isActive={active?.routineId === routine.id}
+              />
+            </div>
           ))}
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

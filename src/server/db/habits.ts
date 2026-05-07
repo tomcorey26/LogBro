@@ -183,8 +183,11 @@ const DEFAULT_HABITS = [
   "Chess",
 ];
 
-export async function seedDefaultHabits(userId: number) {
-  await db.insert(habits).values(
-    DEFAULT_HABITS.map((name) => ({ userId, name }))
-  );
+export type SeededHabit = { id: number; name: string };
+
+export async function seedDefaultHabits(userId: number): Promise<SeededHabit[]> {
+  return db
+    .insert(habits)
+    .values(DEFAULT_HABITS.map((name) => ({ userId, name })))
+    .returning({ id: habits.id, name: habits.name });
 }

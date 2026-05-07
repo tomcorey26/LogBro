@@ -247,7 +247,40 @@ export function RoutineBlockCard(props: Props) {
                       <MinusCircle className="h-3.5 w-3.5" />
                     </Button>
                   ) : (
-                    <span />
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={`Remove set ${i + 1}`}
+                          className="h-6 w-6"
+                        >
+                          <MinusCircle className="h-3.5 w-3.5" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent size="sm">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Remove block?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Removing the only set will remove the &ldquo;
+                            {block.habitName}&rdquo; block from this routine.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            variant="destructive"
+                            onClick={() =>
+                              (props as EditableProps).onRemoveBlock(
+                                block.clientId,
+                              )
+                            }
+                          >
+                            Remove
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   )}
                 </>
               ) : (

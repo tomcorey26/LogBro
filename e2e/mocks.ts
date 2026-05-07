@@ -82,6 +82,16 @@ export async function mockApi(
 ): Promise<MockState> {
   const state: MockState = { ...defaultState(), ...initial };
 
+  // Suppress first-visit tour overlays in mocked tests by default; tour-specific
+  // tests (e2e/tours.spec.ts) explicitly clear these flags before navigation.
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem('tours.seen.habits', '1');
+      localStorage.setItem('tours.seen.routines', '1');
+      localStorage.setItem('tours.seen.stats', '1');
+    } catch {}
+  });
+
   // Habits
   await page.route('**/api/habits', async (route) => {
     if (route.request().method() === 'GET') {

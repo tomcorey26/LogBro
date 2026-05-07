@@ -7,12 +7,14 @@ export function Stepper({
   min,
   max,
   onChange,
+  suffix = 'min',
   'aria-label': ariaLabel,
 }: {
   value: number;
   min: number;
   max: number;
   onChange: (value: number) => void;
+  suffix?: string;
   'aria-label': string;
 }) {
   return (
@@ -38,11 +40,13 @@ export function Stepper({
             if (v >= min && v <= max) onChange(v);
           }}
           aria-label={ariaLabel}
-          className="w-full h-full bg-transparent text-center text-xs font-mono tabular-nums outline-none pr-7 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          className={`w-full h-full bg-transparent text-center text-xs font-mono tabular-nums outline-none ${suffix ? 'pr-7' : ''} [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
         />
-        <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground pointer-events-none">
-          min
-        </span>
+        {suffix ? (
+          <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground pointer-events-none">
+            {suffix}
+          </span>
+        ) : null}
       </div>
       <button
         type="button"
