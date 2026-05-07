@@ -67,13 +67,13 @@ export function RoutineActionBar() {
         tabIndex={0}
         onClick={handleNavigate}
         onKeyDown={handleNavigateKey}
-        className="w-full px-4 py-3 bg-emerald-500/15 border-t border-emerald-500/40 flex items-center justify-between hover:bg-emerald-500/20 transition-colors cursor-pointer"
+        className="w-full px-4 py-3 bg-success/15 border-t border-success/40 flex items-center justify-between hover:bg-success/20 transition-colors cursor-pointer"
         aria-label="Open completed routine"
       >
         <div className="flex items-center gap-2 min-w-0">
-          <Trophy className="h-4 w-4 text-emerald-700 dark:text-emerald-400 shrink-0" />
+          <Trophy className="h-4 w-4 text-success shrink-0" />
           <div className="flex flex-col items-start min-w-0">
-            <span className="font-semibold text-sm text-emerald-800 dark:text-emerald-300">
+            <span className="font-semibold text-sm text-success">
               Routine complete
             </span>
             <span className="text-xs text-muted-foreground">
@@ -85,7 +85,7 @@ export function RoutineActionBar() {
           size="sm"
           onClick={handleFinish}
           disabled={finish.isPending}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-[0_5px_0_0_color-mix(in_srgb,#059669_70%,black)] active:shadow-none active:translate-y-1.25"
+          className="bg-success hover:bg-success/90 text-success-foreground shadow-[0_5px_0_0_color-mix(in_srgb,var(--color-success)_70%,black)] active:shadow-none active:translate-y-1.25"
         >
           {finish.isPending ? 'Finishing...' : 'Finish'}
         </PressableButton>
@@ -164,13 +164,13 @@ export function RoutineActionBar() {
         </PressableButton>
       ) : isBreakRunning ? (
         <div className="flex items-center gap-2">
-          <span className="font-mono text-sm text-sky-700 dark:text-sky-300 font-semibold">{displayTime}</span>
+          <span className="font-mono text-sm text-info font-semibold">{displayTime}</span>
           <PressableButton
             size="icon-sm"
             onClick={handleSkipBreak}
             disabled={skipBreak.isPending}
             aria-label="Skip break"
-            className="bg-sky-500 hover:bg-sky-600 text-white shadow-[0_5px_0_0_color-mix(in_srgb,#0ea5e9_70%,black)] active:shadow-none active:translate-y-1.25"
+            className="bg-info hover:bg-info/90 text-info-foreground shadow-[0_5px_0_0_color-mix(in_srgb,var(--color-info)_70%,black)] active:shadow-none active:translate-y-1.25"
           >
             <SkipForward className="h-3.5 w-3.5" />
           </PressableButton>
