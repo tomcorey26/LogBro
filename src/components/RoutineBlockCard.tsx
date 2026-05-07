@@ -55,7 +55,6 @@ type EditableProps = {
   dragControls?: DragControls;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
-  isCompact?: boolean;
 };
 
 type ActiveRow = {
@@ -124,7 +123,6 @@ export function RoutineBlockCard(props: Props) {
   const dragControls = isEditable ? (props as EditableProps).dragControls : undefined;
   const onMoveUp = isEditable ? (props as EditableProps).onMoveUp : undefined;
   const onMoveDown = isEditable ? (props as EditableProps).onMoveDown : undefined;
-  const isCompact = isEditable ? (props as EditableProps).isCompact ?? false : false;
   const maxSets = block.sets.length >= 10;
 
   return (
@@ -146,7 +144,7 @@ export function RoutineBlockCard(props: Props) {
             {block.habitName}
           </h3>
         </div>
-        {isEditable && !isCompact && (
+        {isEditable && (
           <div className="flex items-center gap-0">
             <Button
               variant="ghost"
@@ -205,9 +203,7 @@ export function RoutineBlockCard(props: Props) {
         </div>
       )}
 
-      {!isCompact && (
-        <>
-            {/* Notes input (editable) */}
+      {/* Notes input (editable) */}
             {isEditable && (
               <div className="mx-4 mb-2 relative">
                 <NotebookPen className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -364,8 +360,6 @@ export function RoutineBlockCard(props: Props) {
                 Add a Set
               </button>
             )}
-        </>
-      )}
     </Card>
   );
 }

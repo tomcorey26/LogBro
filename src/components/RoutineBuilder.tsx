@@ -69,7 +69,6 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
   const [pickerView, setPickerView] = useState<PickerView>({ type: "list" });
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isReordering, setIsReordering] = useState(false);
 
   const isSaving = createRoutine.isPending || updateRoutine.isPending;
   const canSave = name.trim().length > 0 && blocks.length > 0;
@@ -207,9 +206,6 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
             <ReorderableBlock
               key={block.clientId}
               block={block}
-              isCompact={isReordering}
-              onDragStart={() => setIsReordering(true)}
-              onDragEnd={() => setIsReordering(false)}
               onRemoveBlock={removeBlock}
               onAddSet={addSet}
               onRemoveSet={removeSet}
@@ -300,9 +296,6 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
 
 type ReorderableBlockProps = {
   block: BuilderBlock;
-  isCompact: boolean;
-  onDragStart: () => void;
-  onDragEnd: () => void;
   onRemoveBlock: (clientId: string) => void;
   onAddSet: (clientId: string) => void;
   onRemoveSet: (clientId: string, setIndex: number) => void;
@@ -315,9 +308,6 @@ type ReorderableBlockProps = {
 
 function ReorderableBlock({
   block,
-  isCompact,
-  onDragStart,
-  onDragEnd,
   onMoveUp,
   onMoveDown,
   ...handlers
@@ -329,14 +319,14 @@ function ReorderableBlock({
       value={block}
       dragListener={false}
       dragControls={dragControls}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
+      dragElastic={0}
+      dragMomentum={false}
+      transition={{ duration: 0 }}
     >
       <RoutineBlockCard
         block={block}
         mode="editable"
         dragControls={dragControls}
-        isCompact={isCompact}
         onMoveUp={onMoveUp}
         onMoveDown={onMoveDown}
         {...handlers}
