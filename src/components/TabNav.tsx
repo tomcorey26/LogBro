@@ -22,6 +22,7 @@ export function TabNav({ orientation = 'horizontal' }: { orientation?: 'horizont
           <Link
             key={tab.href}
             href={tab.href}
+            data-tour={`tabnav-${tab.href.slice(1)}`}
             onClick={() => trigger('selection')}
             className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
               pathname.startsWith(tab.href)
@@ -42,6 +43,7 @@ export function TabNav({ orientation = 'horizontal' }: { orientation?: 'horizont
         <Link
           key={tab.href}
           href={tab.href}
+          data-tour={`tabnav-${tab.href.slice(1)}`}
           onClick={() => trigger('selection')}
           className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors text-center ${
             pathname.startsWith(tab.href)

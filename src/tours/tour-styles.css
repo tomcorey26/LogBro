@@ -1,0 +1,76 @@
+/* shadcn-themed overrides for driver.js popovers */
+
+.driver-popover {
+  background: var(--card) !important;
+  color: var(--card-foreground) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.35) !important;
+  font-family: var(--font-sans, system-ui, sans-serif) !important;
+  padding: 16px !important;
+  max-width: 320px;
+}
+
+.driver-popover-title {
+  color: var(--foreground) !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 6px !important;
+}
+
+.driver-popover-description {
+  color: var(--muted-foreground, var(--foreground)) !important;
+  font-size: 0.875rem !important;
+  line-height: 1.4 !important;
+}
+
+.driver-popover-progress-text {
+  color: var(--muted-foreground, var(--foreground)) !important;
+  font-size: 0.75rem !important;
+}
+
+.driver-popover-arrow-side-left.driver-popover-arrow,
+.driver-popover-arrow-side-right.driver-popover-arrow,
+.driver-popover-arrow-side-top.driver-popover-arrow,
+.driver-popover-arrow-side-bottom.driver-popover-arrow {
+  border-color: var(--card) !important;
+}
+
+.driver-popover-footer {
+  margin-top: 12px !important;
+}
+
+.driver-popover-footer button {
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 6px 14px !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.driver-popover-footer button:hover {
+  opacity: 0.9;
+}
+
+.driver-popover-footer .driver-popover-prev-btn {
+  background: transparent !important;
+  color: var(--foreground) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.driver-popover-close-btn {
+  color: var(--muted-foreground, var(--foreground)) !important;
+  font-size: 20px !important;
+  top: 8px !important;
+  right: 10px !important;
+}
+
+.driver-overlay {
+  filter: none !important;
+}

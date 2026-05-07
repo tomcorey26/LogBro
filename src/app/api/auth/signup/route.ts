@@ -3,6 +3,7 @@ import { z } from "zod";
 import { hashPassword, setSessionCookie } from "@/lib/auth";
 import { createUser, getUserByUsername } from "@/server/db/users";
 import { seedDefaultHabits } from "@/server/db/habits";
+import { seedDefaultRoutine } from "@/server/db/routines";
 
 const signupSchema = z.object({
   username: z
@@ -42,9 +43,10 @@ export async function POST(request: Request) {
   const passwordHash = await hashPassword(password);
   const user = await createUser(username, passwordHash);
   try {
-    await seedDefaultHabits(user.id);
+    const seededHabits = await seedDefaultHabits(user.id);
+    await seedDefaultRoutine(user.id, seededHabits);
   } catch (err) {
-    console.error("Failed to seed default habits:", err);
+    console.error("Failed to seed default user data:", err);
   }
 
   await setSessionCookie(user.id);

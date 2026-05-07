@@ -55,7 +55,11 @@ export function HabitToolbar({
         </div>
       </div>
 
-      <form onSubmit={handleCreateHabit} className="mb-3 flex gap-2">
+      <form
+        onSubmit={handleCreateHabit}
+        className="mb-3 flex gap-2"
+        data-tour="habits-add-form"
+      >
         <Input
           placeholder="Create new habit..."
           value={newHabitName}

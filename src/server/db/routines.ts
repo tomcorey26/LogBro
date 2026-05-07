@@ -262,3 +262,44 @@ export async function deleteRoutineForUser(
 
   return !!deleted;
 }
+
+const DEFAULT_ROUTINE = {
+  name: "Daily Practice",
+  blocks: [
+    { habitName: "Coding", sets: [{ durationSeconds: 2700, breakSeconds: 0 }] },
+    { habitName: "Guitar", sets: [{ durationSeconds: 1800, breakSeconds: 0 }] },
+    { habitName: "Reading", sets: [{ durationSeconds: 900, breakSeconds: 0 }] },
+  ],
+};
+
+export async function seedDefaultRoutine(
+  userId: number,
+  seededHabits: Array<{ id: number; name: string }>,
+): Promise<void> {
+  const habitIdByName = new Map(seededHabits.map((h) => [h.name, h.id]));
+  const blocks = DEFAULT_ROUTINE.blocks
+    .map((block, idx) => {
+      const habitId = habitIdByName.get(block.habitName);
+      if (!habitId) return null;
+      return { habitId, sortOrder: idx, sets: block.sets };
+    })
+    .filter((b): b is { habitId: number; sortOrder: number; sets: RoutineSet[] } => b !== null);
+
+  if (blocks.length === 0) return;
+
+  await db.transaction(async (tx) => {
+    const [routine] = await tx
+      .insert(routines)
+      .values({ userId, name: DEFAULT_ROUTINE.name })
+      .returning();
+    await tx.insert(routineBlocks).values(
+      blocks.map((b) => ({
+        routineId: routine.id,
+        habitId: b.habitId,
+        sortOrder: b.sortOrder,
+        notes: null,
+        sets: JSON.stringify(b.sets),
+      })),
+    );
+  });
+}

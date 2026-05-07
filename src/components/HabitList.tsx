@@ -25,9 +25,10 @@ export function HabitList({
         </p>
       ) : (
         <div className="space-y-1.5">
-          {sorted.map((habit) => (
+          {sorted.map((habit, index) => (
             <div
               key={habit.id}
+              data-tour={index === 0 ? "habits-first-card" : undefined}
               className="flex items-center gap-3 px-3 py-3 rounded-xl bg-muted/30 border border-border/50 hover:bg-muted/50 transition-colors"
             >
               <button

@@ -38,6 +38,7 @@ import { useTimerStore } from "@/stores/timer-store";
 import { ApiError } from "@/lib/api";
 import { formatTime, getElapsedSeconds } from "@/lib/format";
 import { getRandomCongratsMessage } from "@/lib/congrats-messages";
+import { useTour } from "@/tours/useTour";
 import type { Habit } from "@/lib/types";
 
 function playFanfare() {
@@ -174,6 +175,12 @@ export function Dashboard({
 
   const view = useTimerStore((s) => s.view);
   const activeTimer = useTimerStore((s) => s.activeTimer);
+
+  const showHabitsList =
+    view.type !== "timer_config" &&
+    view.type !== "active_timer" &&
+    view.type !== "success";
+  useTour("habits", { enabled: showHabitsList });
   const openConfig = useTimerStore((s) => s.openConfig);
   const closeConfig = useTimerStore((s) => s.closeConfig);
   const startTimer = useTimerStore((s) => s.startTimer);
@@ -472,9 +479,10 @@ export function Dashboard({
             <div className="mb-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <AnimatePresence initial={false}>
-                  {filteredHabits.map((habit) => (
+                  {filteredHabits.map((habit, index) => (
                     <motion.div
                       key={habit.id}
+                      data-tour={index === 0 ? "habits-first-card" : undefined}
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
