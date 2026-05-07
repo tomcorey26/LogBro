@@ -8,6 +8,8 @@ export function useStats(initialData?: Stats) {
     queryKey: queryKeys.stats.all,
     queryFn: () => api<{ stats: Stats }>("/api/stats"),
     select: (data) => data.stats,
-    ...(initialData ? { initialData: { stats: initialData } } : {}),
+    ...(initialData
+      ? { initialData: { stats: initialData }, initialDataUpdatedAt: 0 }
+      : {}),
   });
 }
