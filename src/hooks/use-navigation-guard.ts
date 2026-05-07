@@ -41,6 +41,9 @@ export function useNavigationGuard({ shouldGuard, onAttempt }: Options) {
       // Re-pin the user before showing the dialog.
       history.pushState({ [SENTINEL_KEY]: true }, "", location.href);
       onAttemptRef.current({ type: "back" }, () => {
+        // Remove listener before navigating so the popstate fired by go(-2)
+        // does not re-trigger the guard while React state drains.
+        window.removeEventListener("popstate", onPopState);
         // Pop the sentinel (current pushed state) so history.back() lands on
         // the original previous entry the user wanted.
         history.go(-2);
