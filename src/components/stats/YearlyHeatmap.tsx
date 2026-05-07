@@ -47,14 +47,9 @@ function buildMonthLabels(grid: HeatmapGrid): (string | null)[] {
   return labels;
 }
 
-export function YearlyHeatmap({
-  grid,
-  isEmpty,
-}: {
-  grid: HeatmapGrid;
-  isEmpty: boolean;
-}) {
+export function YearlyHeatmap({ grid }: { grid: HeatmapGrid }) {
   const monthLabels = buildMonthLabels(grid);
+  const isEmpty = grid.weeks.every((w) => w.days.every((d) => d.seconds === 0));
 
   return (
     <Card>

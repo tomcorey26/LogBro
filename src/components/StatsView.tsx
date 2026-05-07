@@ -11,7 +11,6 @@ import type { Stats } from "@/server/db/stats";
 
 export function StatsView({ initialStats }: { initialStats?: Stats }) {
   const { data: stats } = useStats(initialStats);
-  const isEmpty = stats.lifetime.totalSessions === 0;
 
   return (
     <div className="space-y-4">
@@ -28,7 +27,7 @@ export function StatsView({ initialStats }: { initialStats?: Stats }) {
         current={stats.streak.current}
         longest={stats.streak.longest}
       />
-      <YearlyHeatmap grid={stats.heatmap} isEmpty={isEmpty} />
+      <YearlyHeatmap grid={stats.heatmap} />
       <RankingsSection rankings={stats.rankings} />
     </div>
   );

@@ -15,13 +15,13 @@ export function WeekMonthCard({
       <CardContent className="p-4 grid grid-cols-2 gap-4">
         <div>
           <h3 className="text-sm font-medium text-muted-foreground">
-            This week
+            Last 7 days
           </h3>
           <p className="text-2xl font-bold mt-1">{formatTime(weekSeconds)}</p>
         </div>
         <div>
           <h3 className="text-sm font-medium text-muted-foreground">
-            This month
+            Last 30 days
           </h3>
           <p className="text-2xl font-bold mt-1">{formatTime(monthSeconds)}</p>
         </div>
