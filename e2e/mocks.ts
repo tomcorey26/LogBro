@@ -37,6 +37,15 @@ export type MockState = {
   habits: Habit[];
   history: HistoryEntry[];
   rankings: { rank: number; habitId: number; habitName: string; totalSeconds: number }[];
+  stats: {
+    lifetime: { totalSeconds: number; totalSessions: number };
+    weekSeconds: number;
+    monthSeconds: number;
+    streak: { current: number; longest: number };
+    heatmap: { weeks: { days: { date: string; seconds: number; bucket: 0 | 1 | 2 | 3 | 4; isFuture: boolean }[] }[] };
+    todayKey: string;
+    rankings: { rank: number; habitId: number; habitName: string; totalSeconds: number }[];
+  };
   featureFlags: Record<string, boolean>;
   /** Track stop calls for assertions */
   stopCalls: { timestamp: number }[];
@@ -47,6 +56,15 @@ function defaultState(): MockState {
     habits: [],
     history: [],
     rankings: [],
+    stats: {
+      lifetime: { totalSeconds: 0, totalSessions: 0 },
+      weekSeconds: 0,
+      monthSeconds: 0,
+      streak: { current: 0, longest: 0 },
+      heatmap: { weeks: [] },
+      todayKey: new Date().toISOString().slice(0, 10),
+      rankings: [],
+    },
     featureFlags: { logSession: true },
     stopCalls: [],
   };
@@ -223,6 +241,15 @@ export async function mockApi(
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({ rankings: state.rankings }),
+    });
+  });
+
+  // Stats
+  await page.route('**/api/stats*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ stats: state.stats }),
     });
   });
 
