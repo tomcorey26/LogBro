@@ -8,6 +8,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -177,7 +178,7 @@ export function RoutinesView({
   useTour("routines");
 
   return (
-    <div>
+    <PageContainer>
       <div className="flex items-center justify-between">
         <PageHeader title="Routines" />
         <Link href="/routines/new" data-tour="routines-new-button">
@@ -218,6 +219,6 @@ export function RoutinesView({
           ))}
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

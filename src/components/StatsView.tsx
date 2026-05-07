@@ -1,6 +1,7 @@
 "use client";
 
 import { PageHeader } from "@/components/ui/page-header";
+import { PageContainer } from "@/components/ui/page-container";
 import { useStats } from "@/hooks/use-stats";
 import { useTour } from "@/tours/useTour";
 import { LifetimeTotalsCard } from "@/components/stats/LifetimeTotalsCard";
@@ -16,7 +17,7 @@ export function StatsView({ initialStats }: { initialStats?: Stats }) {
   useTour("stats");
 
   return (
-    <div className="space-y-4">
+    <PageContainer className="space-y-4">
       <PageHeader title="Stats" />
       <div data-tour="stats-totals">
         <LifetimeTotalsCard
@@ -38,6 +39,6 @@ export function StatsView({ initialStats }: { initialStats?: Stats }) {
         <YearlyHeatmap grid={stats.heatmap} />
       </div>
       <RankingsSection rankings={stats.rankings} />
-    </div>
+    </PageContainer>
   );
 }

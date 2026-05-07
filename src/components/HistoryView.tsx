@@ -12,6 +12,7 @@ import { useHistory, useDeleteHistoryEntry } from '@/hooks/use-history';
 import { useHaptics } from '@/hooks/use-haptics';
 import type { HistoryEntry, HistoryListItem, HistoryRoutineGroup } from '@/lib/types';
 import { PageHeader } from '@/components/ui/page-header';
+import { PageContainer } from '@/components/ui/page-container';
 
 type DateRange = 'today' | 'week' | 'month' | 'all';
 
@@ -89,7 +90,7 @@ export function HistoryView({
   }
 
   return (
-    <div className="space-y-4">
+    <PageContainer className="space-y-4">
       <PageHeader title="History" />
       {/* Filters */}
       <div className="space-y-2">
@@ -190,7 +191,7 @@ export function HistoryView({
           </AnimatePresence>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }
 

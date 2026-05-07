@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PageHeader } from '@/components/ui/page-header';
+import { PageContainer } from '@/components/ui/page-container';
 import { ReplayToursButton } from '@/components/ReplayToursButton';
 
 export default function AccountPage() {
@@ -14,7 +15,7 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer className="space-y-6">
       <PageHeader title="Account" />
       <div className="space-y-2">
         <Label htmlFor="username">Username</Label>
@@ -27,6 +28,6 @@ export default function AccountPage() {
         </p>
         <ReplayToursButton />
       </div>
-    </div>
+    </PageContainer>
   );
 }
