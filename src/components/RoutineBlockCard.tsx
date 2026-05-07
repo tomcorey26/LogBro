@@ -21,6 +21,8 @@ import {
   Plus,
   MinusCircle,
   GripVertical,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { DragControls } from "framer-motion";
@@ -51,6 +53,8 @@ type EditableProps = {
   ) => void;
   onUpdateNotes: (clientId: string, notes: string) => void;
   dragControls?: DragControls;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
 };
 
 type ActiveRow = {
@@ -117,6 +121,8 @@ export function RoutineBlockCard(props: Props) {
   const { block, mode } = props;
   const isEditable = mode === "editable";
   const dragControls = isEditable ? (props as EditableProps).dragControls : undefined;
+  const onMoveUp = isEditable ? (props as EditableProps).onMoveUp : undefined;
+  const onMoveDown = isEditable ? (props as EditableProps).onMoveDown : undefined;
   const maxSets = block.sets.length >= 10;
 
   return (
@@ -140,33 +146,53 @@ export function RoutineBlockCard(props: Props) {
           </h3>
         </div>
         {isEditable && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="icon-sm" aria-label="Delete block">
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent size="sm">
-              <AlertDialogHeader>
-                <AlertDialogTitle>Remove block?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This will remove &ldquo;{block.habitName}&rdquo; and all its
-                  sets from the routine.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  variant="destructive"
-                  onClick={() =>
-                    (props as EditableProps).onRemoveBlock(block.clientId)
-                  }
-                >
-                  Remove
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <div className="flex items-center gap-0">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Move block up"
+              disabled={!onMoveUp}
+              onClick={() => onMoveUp?.()}
+            >
+              <ChevronUp className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Move block down"
+              disabled={!onMoveDown}
+              onClick={() => onMoveDown?.()}
+            >
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="icon-sm" aria-label="Delete block">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent size="sm">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Remove block?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will remove &ldquo;{block.habitName}&rdquo; and all its
+                    sets from the routine.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    variant="destructive"
+                    onClick={() =>
+                      (props as EditableProps).onRemoveBlock(block.clientId)
+                    }
+                  >
+                    Remove
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         )}
       </div>
 

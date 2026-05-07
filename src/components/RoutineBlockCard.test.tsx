@@ -46,4 +46,50 @@ describe('RoutineBlockCard editable', () => {
     );
     expect(screen.queryByRole('button', { name: /reorder block/i })).not.toBeInTheDocument();
   });
+
+  it('renders enabled Move up button when onMoveUp provided', async () => {
+    const onMoveUp = vi.fn();
+    render(
+      <RoutineBlockCard
+        block={baseBlock}
+        mode="editable"
+        onMoveUp={onMoveUp}
+        {...noopHandlers}
+      />
+    );
+    const btn = screen.getByRole('button', { name: /move block up/i });
+    expect(btn).toBeEnabled();
+    btn.click();
+    expect(onMoveUp).toHaveBeenCalled();
+  });
+
+  it('renders disabled Move up button when onMoveUp missing', () => {
+    render(
+      <RoutineBlockCard block={baseBlock} mode="editable" {...noopHandlers} />
+    );
+    expect(screen.getByRole('button', { name: /move block up/i })).toBeDisabled();
+  });
+
+  it('renders enabled Move down button when onMoveDown provided', async () => {
+    const onMoveDown = vi.fn();
+    render(
+      <RoutineBlockCard
+        block={baseBlock}
+        mode="editable"
+        onMoveDown={onMoveDown}
+        {...noopHandlers}
+      />
+    );
+    const btn = screen.getByRole('button', { name: /move block down/i });
+    expect(btn).toBeEnabled();
+    btn.click();
+    expect(onMoveDown).toHaveBeenCalled();
+  });
+
+  it('renders disabled Move down button when onMoveDown missing', () => {
+    render(
+      <RoutineBlockCard block={baseBlock} mode="editable" {...noopHandlers} />
+    );
+    expect(screen.getByRole('button', { name: /move block down/i })).toBeDisabled();
+  });
 });
