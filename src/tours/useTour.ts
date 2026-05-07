@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { driver, type DriveStep } from "driver.js";
+import "driver.js/dist/driver.css";
 
 import { TOURS } from "./registry";
 import { hasSeenTour, markTourSeen, type TourId } from "./storage";
