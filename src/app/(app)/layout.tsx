@@ -7,6 +7,8 @@ import { LogoutButton } from "@/components/LogoutButton";
 import { buttonVariants } from "@/components/ui/button";
 import { TimerSync } from "@/components/TimerSync";
 import { MiniTimerBar } from "@/components/MiniTimerBar";
+import { RoutineSync } from "@/components/RoutineSync";
+import { RoutineActionBar } from "@/components/RoutineActionBar";
 import { APP_NAME } from "@/data/app";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -52,9 +54,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
+        <RoutineActionBar />
         <MiniTimerBar />
         <Toaster position="top-center" />
         <TimerSync />
+        <RoutineSync />
       </div>
     </Providers>
   );

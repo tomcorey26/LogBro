@@ -1,0 +1,1 @@
+ALTER TABLE `time_sessions` ADD `routine_session_id` integer REFERENCES routine_sessions(id);

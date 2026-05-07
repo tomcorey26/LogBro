@@ -43,6 +43,20 @@
       "when": 1775857437021,
       "tag": "0005_black_dormammu",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1777774979404,
+      "tag": "0006_add-routine-sessions",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1777783722545,
+      "tag": "0007_link-time-sessions-to-routine",
+      "breakpoints": true
     }
   ]
 }

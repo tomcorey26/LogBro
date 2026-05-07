@@ -49,6 +49,8 @@ Devops setup
 - Locally (you, the developer): change schema → npm run db:generate → commit the migration files
 - Prod (Coolify): drizzle-kit migrate runs the migration files at startup
 - Use one coolify instance with another server that has your apps
+- Use DB transactions in any places necessary to keep things atomic, and avoid data being in
+broken partial state
 
 UI
 
@@ -57,3 +59,6 @@ UI
 - Paginate long lists of items
 - Make sure there is a 404 not found page
 - Make sure the app has an icon
+
+README
+- Keep the README up to date

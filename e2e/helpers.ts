@@ -54,3 +54,69 @@ export async function trackStopCalls(page: Page) {
   });
   return calls;
 }
+
+export type RoutineBlockInput = {
+  habitId: number;
+  sortOrder: number;
+  notes?: string | null;
+  sets: Array<{ durationSeconds: number; breakSeconds: number }>;
+};
+
+/**
+ * Create a routine via the real API. Returns the routine id.
+ */
+export async function createRoutine(
+  page: Page,
+  name: string,
+  blocks: RoutineBlockInput[],
+): Promise<number> {
+  const res = await page.request.post('/api/routines', {
+    data: { name, blocks },
+  });
+  if (!res.ok()) {
+    throw new Error(`createRoutine failed: ${res.status()} ${await res.text()}`);
+  }
+  const { routine } = await res.json();
+  return routine.id;
+}
+
+/**
+ * Delete all routines for the current user (cleanup).
+ */
+export async function deleteAllRoutines(page: Page) {
+  const res = await page.request.get('/api/routines');
+  const { routines } = await res.json();
+  for (const r of routines) {
+    await page.request.delete(`/api/routines/${r.id}`);
+  }
+}
+
+/**
+ * Discard any active routine session for the current user (cleanup).
+ * Idempotent — safe to call when nothing is active.
+ */
+export async function discardActiveRoutineSession(page: Page) {
+  await page.request.post('/api/routines/active/discard');
+}
+
+/**
+ * Start a routine session via the real API.
+ */
+export async function startRoutineSession(page: Page, routineId: number) {
+  const res = await page.request.post(`/api/routines/${routineId}/start`);
+  if (!res.ok()) {
+    throw new Error(`startRoutineSession failed: ${res.status()} ${await res.text()}`);
+  }
+  return await res.json();
+}
+
+/**
+ * Full reset: discard any active routine session, delete all routines, delete all habits.
+ * Run this at the start (or end) of every routine-related test for a clean slate.
+ */
+export async function resetUserState(page: Page) {
+  await discardActiveRoutineSession(page);
+  await stopTimer(page);
+  await deleteAllRoutines(page);
+  await deleteAllHabits(page);
+}

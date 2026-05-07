@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useRoutines, useDeleteRoutine } from "@/hooks/use-routines";
+import { useActiveRoutine } from "@/hooks/use-active-routine";
 import { useHaptics } from "@/hooks/use-haptics";
 import type { Routine } from "@/lib/types";
 
@@ -32,7 +33,9 @@ function getBlockOpacity(setCount: number): string {
   return "bg-primary/50";
 }
 
-function RoutineCard({ routine }: { routine: Routine }) {
+type RoutineCardProps = { routine: Routine; isActive?: boolean };
+
+function RoutineCard({ routine, isActive = false }: RoutineCardProps) {
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const deleteRoutine = useDeleteRoutine();
@@ -62,36 +65,46 @@ function RoutineCard({ routine }: { routine: Routine }) {
     }
   }
 
+  const cardHref = isActive ? `/routines/${routine.id}/active` : `/routines/${routine.id}`;
+
   return (
     <>
-      <Link href={`/routines/${routine.id}`} className="block h-full">
+      <Link href={cardHref} className="block h-full">
         <Card className="p-5 h-full flex flex-col hover:shadow-md active:scale-[0.98] transition-all cursor-pointer relative group">
           {/* Action icons */}
           <div className="absolute top-3 right-3 flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Edit routine"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                router.push(`/routines/${routine.id}/edit`);
-              }}
-            >
-              <Pencil className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Delete routine"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowDeleteDialog(true);
-              }}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
+            {isActive ? (
+              <span className="text-[10px] uppercase tracking-wide bg-primary text-primary-foreground rounded-full px-2 py-0.5">
+                Continue
+              </span>
+            ) : (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Edit routine"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    router.push(`/routines/${routine.id}/edit`);
+                  }}
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Delete routine"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowDeleteDialog(true);
+                  }}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </>
+            )}
           </div>
 
         <p className="text-sm font-semibold text-foreground mb-4">
@@ -158,6 +171,7 @@ export function RoutinesView({
   initialRoutines?: Routine[];
 }) {
   const { data: routines } = useRoutines(initialRoutines);
+  const { data: active } = useActiveRoutine();
 
   return (
     <div>
@@ -170,6 +184,18 @@ export function RoutinesView({
           </Button>
         </Link>
       </div>
+      {active && (
+        <div className="mb-4 rounded-md bg-primary/10 border border-primary/30 px-4 py-3 flex items-center justify-between">
+          <span className="text-sm">
+            Routine in progress: <strong>{active.routineNameSnapshot}</strong>
+          </span>
+          {active.routineId && (
+            <Link href={`/routines/${active.routineId}/active`}>
+              <Button size="sm">Continue</Button>
+            </Link>
+          )}
+        </div>
+      )}
       {routines.length === 0 ? (
         <p className="text-center text-muted-foreground py-12">
           No routines yet. Create your first practice routine.
@@ -177,7 +203,11 @@ export function RoutinesView({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {routines.map((routine) => (
-            <RoutineCard key={routine.id} routine={routine} />
+            <RoutineCard
+              key={routine.id}
+              routine={routine}
+              isActive={active?.routineId === routine.id}
+            />
           ))}
         </div>
       )}

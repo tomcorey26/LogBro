@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { activeTimers, habits, timeSessions } from "@/db/schema";
+import { activeTimers, habits, timeSessions, routineSessions } from "@/db/schema";
 import { buildSessionFromTimer } from "@/lib/timer";
 
 type StartTimerInput = {
@@ -21,6 +21,15 @@ export async function startTimerForUser(input: StartTimerInput) {
       .get();
 
     if (!habit) return null;
+
+    const activeRoutine = await tx
+      .select({ id: routineSessions.id })
+      .from(routineSessions)
+      .where(
+        and(eq(routineSessions.userId, userId), eq(routineSessions.status, 'active')),
+      )
+      .get();
+    if (activeRoutine) return { conflict: 'routine_session_active' as const };
 
     const existingTimer = await tx
       .select()

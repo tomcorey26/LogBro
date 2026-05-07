@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSessionUserId } from "@/lib/auth";
-import { deleteHabitForUser } from "@/server/db/habits";
+import { deleteHabitForUserGuarded } from "@/server/db/habits";
 
 export async function DELETE(
   _request: Request,
@@ -15,8 +15,14 @@ export async function DELETE(
   if (isNaN(habitId))
     return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
 
-  const deletedHabit = await deleteHabitForUser(habitId, userId);
-  if (!deletedHabit) {
+  const result = await deleteHabitForUserGuarded(habitId, userId);
+  if (!result.ok) {
+    if (result.reason === "habit_in_use") {
+      return NextResponse.json(
+        { error: "Habit is in use by your active routine", code: "habit_in_use" },
+        { status: 409 },
+      );
+    }
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 

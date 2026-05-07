@@ -1,7 +1,13 @@
 import { and, eq, gte, sql } from "drizzle-orm";
 
 import { db } from "@/db";
-import { activeTimers, habits, timeSessions } from "@/db/schema";
+import {
+  activeTimers,
+  habits,
+  routineSessions,
+  routineSessionSets,
+  timeSessions,
+} from "@/db/schema";
 import type { Habit } from "@/lib/types";
 
 export async function getHabitsForUser(userId: number): Promise<Habit[]> {
@@ -94,6 +100,37 @@ export async function deleteHabitForUser(habitId: number, userId: number) {
     .returning();
 
   return deletedHabit ?? null;
+}
+
+export async function deleteHabitForUserGuarded(
+  habitId: number,
+  userId: number,
+): Promise<
+  | { ok: true; habit: typeof habits.$inferSelect }
+  | { ok: false; reason: 'not_found' | 'habit_in_use' }
+> {
+  return db.transaction(async (tx) => {
+    const inUse = await tx
+      .select({ id: routineSessionSets.id })
+      .from(routineSessionSets)
+      .innerJoin(routineSessions, eq(routineSessions.id, routineSessionSets.sessionId))
+      .where(
+        and(
+          eq(routineSessions.userId, userId),
+          eq(routineSessions.status, 'active'),
+          eq(routineSessionSets.habitId, habitId),
+        ),
+      )
+      .get();
+    if (inUse) return { ok: false as const, reason: 'habit_in_use' as const };
+
+    const [deletedHabit] = await tx
+      .delete(habits)
+      .where(and(eq(habits.id, habitId), eq(habits.userId, userId)))
+      .returning();
+    if (!deletedHabit) return { ok: false as const, reason: 'not_found' as const };
+    return { ok: true as const, habit: deletedHabit };
+  });
 }
 
 async function computeStreak(habitId: number): Promise<number> {

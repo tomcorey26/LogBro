@@ -50,6 +50,11 @@ export async function POST(request: Request) {
   });
   if (!timer)
     return NextResponse.json({ error: "Habit not found" }, { status: 404 });
+  if ("conflict" in timer)
+    return NextResponse.json(
+      { error: "Routine in progress", code: "routine_session_active" },
+      { status: 409 },
+    );
 
   return NextResponse.json(timer);
 }

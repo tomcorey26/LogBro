@@ -19,11 +19,12 @@ import {
   Pause,
   NotebookPen,
   Plus,
-  Minus,
   MinusCircle,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import type { BuilderBlock } from "@/lib/types";
+import { Stepper } from "@/components/ui/stepper";
+import type { BuilderBlock, RoutineSessionSet } from "@/lib/types";
+import { ActiveRoutineSetRow, type SetRowState } from "./ActiveRoutineSetRow";
 
 type ReadonlyProps = {
   block: BuilderBlock;
@@ -49,69 +50,67 @@ type EditableProps = {
   onUpdateNotes: (clientId: string, notes: string) => void;
 };
 
-type Props = ReadonlyProps | EditableProps;
+type ActiveRow = {
+  set: RoutineSessionSet;
+  state: SetRowState;
+  displayTime: string;
+  progressPct?: number;
+  onStart: () => void;
+  onEnd: () => void;
+  onSkipBreak: () => void;
+  onPatch: (patch: {
+    plannedDurationSeconds?: number;
+    plannedBreakSeconds?: number;
+    actualDurationSeconds?: number;
+  }) => void;
+};
+
+type ActiveProps = {
+  mode: "active";
+  habitName: string;
+  notes: string | null;
+  rows: ActiveRow[];
+};
+
+type Props = ReadonlyProps | EditableProps | ActiveProps;
 
 function formatMinutes(seconds: number): string {
   const mins = Math.round(seconds / 60);
   return `${mins} min`;
 }
 
-function Stepper({
-  value,
-  min,
-  max,
-  onChange,
-  "aria-label": ariaLabel,
-}: {
-  value: number;
-  min: number;
-  max: number;
-  onChange: (value: number) => void;
-  "aria-label": string;
-}) {
-  return (
-    <div className="inline-flex items-center rounded-md border border-input h-7 bg-input-bg">
-      <button
-        type="button"
-        onClick={() => value > min && onChange(value - 1)}
-        disabled={value <= min}
-        aria-label={`Decrease ${ariaLabel}`}
-        className="flex items-center justify-center h-full w-7 bg-primary/10 text-primary hover:bg-primary/20 active:scale-90 transition-all disabled:opacity-30 disabled:pointer-events-none rounded-l-md border-r border-input"
-      >
-        <Minus className="h-3 w-3" />
-      </button>
-      <div className="relative flex-1 min-w-[3.5rem]">
-        <input
-          type="number"
-          inputMode="numeric"
-          min={min}
-          max={max}
-          value={value}
-          onChange={(e) => {
-            const v = Number(e.target.value);
-            if (v >= min && v <= max) onChange(v);
-          }}
-          aria-label={ariaLabel}
-          className="w-full h-full bg-transparent text-center text-xs font-mono tabular-nums outline-none pr-7 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-        />
-        <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground pointer-events-none">
-          min
-        </span>
-      </div>
-      <button
-        type="button"
-        onClick={() => value < max && onChange(value + 1)}
-        disabled={value >= max}
-        aria-label={`Increase ${ariaLabel}`}
-        className="flex items-center justify-center h-full w-7 bg-primary/10 text-primary hover:bg-primary/20 active:scale-90 transition-all disabled:opacity-30 disabled:pointer-events-none rounded-r-md border-l border-input"
-      >
-        <Plus className="h-3 w-3" />
-      </button>
-    </div>
-  );
-}
-
 export function RoutineBlockCard(props: Props) {
+  if (props.mode === "active") {
+    return (
+      <Card className="overflow-hidden pb-0">
+        <div className="flex items-center justify-between px-4 pt-4 pb-2">
+          <h3 className="text-base font-semibold">{props.habitName}</h3>
+        </div>
+        {props.notes && (
+          <div className="mx-4 mb-2 rounded-lg bg-primary/10 px-3 py-2 flex items-center gap-2">
+            <NotebookPen className="h-3.5 w-3.5 text-primary shrink-0" />
+            <span className="text-xs text-foreground">{props.notes}</span>
+          </div>
+        )}
+        <div className="px-4 pb-2">
+          <div className="grid grid-cols-[2rem_1fr_1fr_2.5rem] gap-2 text-xs font-mono text-muted-foreground uppercase tracking-wide mb-0.5 px-1">
+            <span>Set</span>
+            <span>Duration</span>
+            <span>Break</span>
+            <span />
+          </div>
+          {props.rows.map((row, i) => (
+            <ActiveRoutineSetRow
+              key={row.set.id}
+              setNumber={i + 1}
+              {...row}
+            />
+          ))}
+        </div>
+      </Card>
+    );
+  }
+
   const { block, mode } = props;
   const isEditable = mode === "editable";
   const maxSets = block.sets.length >= 10;

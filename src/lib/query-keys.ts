@@ -20,4 +20,7 @@ export const queryKeys = {
   features: {
     all: ['features'] as const,
   },
+  routineSession: {
+    active: ['routineSession', 'active'] as const,
+  },
 };

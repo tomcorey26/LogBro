@@ -25,12 +25,14 @@ export function HabitCard({
   onDelete,
   onLog,
   onTimerClick,
+  disabled,
 }: {
   habit: Habit;
   onStart: (habitId: number) => void;
   onDelete: (habitId: number) => void;
   onLog?: (habitId: number) => void;
   onTimerClick?: () => void;
+  disabled?: boolean;
 }) {
   const { trigger } = useHaptics();
   const isTimerActive = !!habit.activeTimer;
@@ -114,6 +116,7 @@ export function HabitCard({
               onStart(habit.id);
             }}
             className="flex-1"
+            disabled={disabled}
           >
             Start
           </Button>

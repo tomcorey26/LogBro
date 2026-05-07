@@ -24,6 +24,10 @@ vi.mock("@/hooks/use-feature-flags", () => ({
   useFeatureFlags: () => ({ data: { logSession: true } }),
 }));
 
+vi.mock("@/hooks/use-active-routine", () => ({
+  useActiveRoutine: () => ({ data: null }),
+}));
+
 import { Dashboard } from "./Dashboard";
 import type { Habit } from "@/lib/types";
 

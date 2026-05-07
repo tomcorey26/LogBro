@@ -7,3 +7,5 @@
 - Talk with ai like a co -worker about the plan
 - First tell claude to explain to you how something works
   then prompt it to make the changes and now it has good context
+
+ New tagline: Time block routines like a workout routine

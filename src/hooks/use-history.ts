@@ -1,11 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { queryKeys } from '@/lib/query-keys';
-import type { HistoryEntry } from '@/lib/types';
+import type { HistoryListItem } from '@/lib/types';
 
 type HistoryFilters = { habitId?: string; range?: string; viewMode: string };
 
-export function useHistory(filters: HistoryFilters, initialData?: { history: HistoryEntry[]; totalSeconds: number }) {
+export function useHistory(filters: HistoryFilters, initialData?: { history: HistoryListItem[]; totalSeconds: number }) {
   // Only use initialData for the default (unfiltered) query to avoid stale data on filter changes
   const isDefaultFilter = !filters.habitId && filters.range === 'all';
   return useQuery({
@@ -16,7 +16,7 @@ export function useHistory(filters: HistoryFilters, initialData?: { history: His
       if (filters.viewMode === 'list' && filters.range && filters.range !== 'all') {
         params.set('range', filters.range);
       }
-      return api<{ history: HistoryEntry[]; totalSeconds: number }>(`/api/history?${params}`);
+      return api<{ history: HistoryListItem[]; totalSeconds: number }>(`/api/history?${params}`);
     },
     ...(initialData && isDefaultFilter ? { initialData } : {}),
   });

@@ -2,6 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { useTimerStore } from "@/stores/timer-store";
+import { useRoutineSessionStore } from "@/stores/routine-session-store";
 import { useHaptics } from "@/hooks/use-haptics";
 
 export function MiniTimerBar() {
@@ -10,6 +11,10 @@ export function MiniTimerBar() {
   const { trigger } = useHaptics();
   const activeTimer = useTimerStore((s) => s.activeTimer);
   const displayTime = useTimerStore((s) => s.displayTime);
+  const routineMode = useRoutineSessionStore((s) => s.mode);
+
+  // Hidden when an active/summary routine session is in flight (mutual exclusion)
+  if (routineMode === "active" || routineMode === "summary") return null;
 
   // Hidden when no timer or on /habits (which shows full timer view)
   if (!activeTimer || pathname.startsWith("/habits")) return null;

@@ -34,8 +34,14 @@ function parseBlocks(rawBlocks: RawBlock[]): RoutineBlock[] {
     });
 }
 
-async function fetchBlocksForRoutine(routineId: number): Promise<RoutineBlock[]> {
-  const rawBlocks = await db
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type Conn = typeof db | Tx;
+
+async function fetchBlocksForRoutine(
+  routineId: number,
+  conn: Conn = db,
+): Promise<RoutineBlock[]> {
+  const rawBlocks = await conn
     .select({
       id: routineBlocks.id,
       habitId: routineBlocks.habitId,
@@ -94,8 +100,9 @@ export async function getRoutinesForUser(userId: number): Promise<Routine[]> {
 export async function getRoutineById(
   routineId: number,
   userId: number,
+  conn: Conn = db,
 ): Promise<Routine | null> {
-  const routine = await db
+  const routine = await conn
     .select()
     .from(routines)
     .where(and(eq(routines.id, routineId), eq(routines.userId, userId)))
@@ -103,7 +110,7 @@ export async function getRoutineById(
 
   if (!routine) return null;
 
-  const blocks = await fetchBlocksForRoutine(routine.id);
+  const blocks = await fetchBlocksForRoutine(routine.id, conn);
   return {
     id: routine.id,
     name: routine.name,

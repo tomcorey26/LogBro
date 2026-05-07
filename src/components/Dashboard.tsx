@@ -30,6 +30,7 @@ import {
   useStartTimer,
   useStopTimer,
 } from "@/hooks/use-habits";
+import { useActiveRoutine } from "@/hooks/use-active-routine";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { useFeatureFlags } from "@/hooks/use-feature-flags";
@@ -146,6 +147,8 @@ export function Dashboard({
 }) {
   const { data: habits } = useHabits(initialHabits);
   const { data: flags } = useFeatureFlags();
+  const { data: activeRoutine } = useActiveRoutine();
+  const routineActive = !!activeRoutine;
   const { trigger } = useHaptics();
   const [switchConfirmHabitId, setSwitchConfirmHabitId] = useState<
     number | null
@@ -410,6 +413,12 @@ export function Dashboard({
         onCreateHabit={handleAdd}
       />
 
+      {routineActive && (
+        <div className="mb-3 rounded-md bg-primary/10 border border-primary/30 px-4 py-2 text-sm">
+          Routine in progress — finish or discard it to start individual timers.
+        </div>
+      )}
+
       {viewMode === "list" ? (
         <HabitList
           habits={filteredHabits}
@@ -434,6 +443,7 @@ export function Dashboard({
                 size="sm"
                 variant="default"
                 onClick={() => handleStartClick(habit.id)}
+                disabled={routineActive}
               >
                 Start
               </Button>
@@ -478,6 +488,7 @@ export function Dashboard({
                         onTimerClick={() =>
                           useTimerStore.getState().showActiveTimer()
                         }
+                        disabled={routineActive}
                       />
                     </motion.div>
                   ))}
