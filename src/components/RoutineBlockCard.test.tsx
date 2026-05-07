@@ -92,4 +92,33 @@ describe('RoutineBlockCard editable', () => {
     );
     expect(screen.getByRole('button', { name: /move block down/i })).toBeDisabled();
   });
+
+  it('hides notes, sets, and Add a Set when isCompact is true', () => {
+    render(
+      <RoutineBlockCard
+        block={baseBlock}
+        mode="editable"
+        isCompact
+        {...noopHandlers}
+      />
+    );
+    expect(screen.queryByPlaceholderText(/add notes/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^set$/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /add a set/i })).not.toBeInTheDocument();
+    // Header (habit name) still renders
+    expect(screen.getByText('Guitar')).toBeInTheDocument();
+  });
+
+  it('renders full body when isCompact is false', () => {
+    render(
+      <RoutineBlockCard
+        block={baseBlock}
+        mode="editable"
+        isCompact={false}
+        {...noopHandlers}
+      />
+    );
+    expect(screen.getByPlaceholderText(/add notes/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /add a set/i })).toBeInTheDocument();
+  });
 });

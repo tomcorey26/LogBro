@@ -55,6 +55,7 @@ type EditableProps = {
   dragControls?: DragControls;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
+  isCompact?: boolean;
 };
 
 type ActiveRow = {
@@ -123,6 +124,7 @@ export function RoutineBlockCard(props: Props) {
   const dragControls = isEditable ? (props as EditableProps).dragControls : undefined;
   const onMoveUp = isEditable ? (props as EditableProps).onMoveUp : undefined;
   const onMoveDown = isEditable ? (props as EditableProps).onMoveDown : undefined;
+  const isCompact = isEditable ? (props as EditableProps).isCompact ?? false : false;
   const maxSets = block.sets.length >= 10;
 
   return (
@@ -204,163 +206,169 @@ export function RoutineBlockCard(props: Props) {
         </div>
       )}
 
-      {/* Notes input (editable) */}
-      {isEditable && (
-        <div className="mx-4 mb-2 relative">
-          <NotebookPen className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <Input
-            placeholder="Add notes..."
-            value={block.notes ?? ""}
-            onChange={(e) =>
-              (props as EditableProps).onUpdateNotes(
-                block.clientId,
-                e.target.value,
-              )
-            }
-            className="text-xs h-8 bg-primary/5 pl-8"
-          />
-        </div>
-      )}
+      <motion.div layout="size">
+        {!isCompact && (
+          <>
+            {/* Notes input (editable) */}
+            {isEditable && (
+              <div className="mx-4 mb-2 relative">
+                <NotebookPen className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  placeholder="Add notes..."
+                  value={block.notes ?? ""}
+                  onChange={(e) =>
+                    (props as EditableProps).onUpdateNotes(
+                      block.clientId,
+                      e.target.value,
+                    )
+                  }
+                  className="text-xs h-8 bg-primary/5 pl-8"
+                />
+              </div>
+            )}
 
-      {/* Set rows */}
-      <div className="px-4 pb-2 overflow-hidden">
-        {/* Column headers */}
-        <div className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 text-xs font-mono text-muted-foreground uppercase tracking-wide mb-0.5 px-1">
-          <span>Set</span>
-          <span>Duration</span>
-          <span>Break</span>
-          <span />
-        </div>
+            {/* Set rows */}
+            <div className="px-4 pb-2 overflow-hidden">
+              {/* Column headers */}
+              <div className="grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 text-xs font-mono text-muted-foreground uppercase tracking-wide mb-0.5 px-1">
+                <span>Set</span>
+                <span>Duration</span>
+                <span>Break</span>
+                <span />
+              </div>
 
-        <AnimatePresence initial={false}>
-        {block.sets.map((s, i) => (
-          <motion.div
-            key={s.clientId}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.15, ease: "easeInOut" }}
-            className="overflow-hidden"
-          >
-            {/* Set row */}
-            <div
-              className={`grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 items-center py-1 px-1 rounded ${i % 2 === 1 ? "bg-muted/60" : ""}`}
-            >
-              <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-primary/10 text-primary text-[10px] font-mono font-medium">
-                {i + 1}
-              </span>
-              {isEditable ? (
-                <>
-                  <Stepper
-                    value={Math.round(s.durationSeconds / 60)}
-                    min={1}
-                    max={120}
-                    onChange={(mins) =>
-                      (props as EditableProps).onUpdateDuration(
-                        block.clientId,
-                        i,
-                        mins * 60,
-                      )
-                    }
-                    aria-label={`Set ${i + 1} duration in minutes`}
-                  />
-                  <Stepper
-                    value={Math.round(s.breakSeconds / 60)}
-                    min={0}
-                    max={60}
-                    onChange={(mins) =>
-                      (props as EditableProps).onUpdateBreak(
-                        block.clientId,
-                        i,
-                        mins * 60,
-                      )
-                    }
-                    aria-label={`Set ${i + 1} break in minutes`}
-                  />
-                  {block.sets.length > 1 ? (
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() =>
-                        (props as EditableProps).onRemoveSet(block.clientId, i)
-                      }
-                      aria-label={`Remove set ${i + 1}`}
-                      className="h-6 w-6"
+              <AnimatePresence initial={false}>
+                {block.sets.map((s, i) => (
+                  <motion.div
+                    key={s.clientId}
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.15, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    {/* Set row */}
+                    <div
+                      className={`grid grid-cols-[2rem_1fr_1fr_2rem] gap-2 items-center py-1 px-1 rounded ${i % 2 === 1 ? "bg-muted/60" : ""}`}
                     >
-                      <MinusCircle className="h-3.5 w-3.5" />
-                    </Button>
-                  ) : (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          aria-label={`Remove set ${i + 1}`}
-                          className="h-6 w-6"
-                        >
-                          <MinusCircle className="h-3.5 w-3.5" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent size="sm">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Remove block?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Removing the only set will remove the &ldquo;
-                            {block.habitName}&rdquo; block from this routine.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            variant="destructive"
-                            onClick={() =>
-                              (props as EditableProps).onRemoveBlock(
+                      <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-primary/10 text-primary text-[10px] font-mono font-medium">
+                        {i + 1}
+                      </span>
+                      {isEditable ? (
+                        <>
+                          <Stepper
+                            value={Math.round(s.durationSeconds / 60)}
+                            min={1}
+                            max={120}
+                            onChange={(mins) =>
+                              (props as EditableProps).onUpdateDuration(
                                 block.clientId,
+                                i,
+                                mins * 60,
                               )
                             }
-                          >
-                            Remove
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  )}
-                </>
-              ) : (
-                <>
-                  <span className="text-sm text-foreground">
-                    {formatMinutes(s.durationSeconds)}
-                  </span>
-                  {s.breakSeconds > 0 ? (
-                    <span className="text-xs text-muted-foreground italic flex items-center gap-1">
-                      <Pause className="h-3 w-3" />
-                      {formatMinutes(s.breakSeconds)} break
-                    </span>
-                  ) : (
-                    <span className="text-xs text-muted-foreground italic">
-                      No break
-                    </span>
-                  )}
-                  <span />
-                </>
-              )}
+                            aria-label={`Set ${i + 1} duration in minutes`}
+                          />
+                          <Stepper
+                            value={Math.round(s.breakSeconds / 60)}
+                            min={0}
+                            max={60}
+                            onChange={(mins) =>
+                              (props as EditableProps).onUpdateBreak(
+                                block.clientId,
+                                i,
+                                mins * 60,
+                              )
+                            }
+                            aria-label={`Set ${i + 1} break in minutes`}
+                          />
+                          {block.sets.length > 1 ? (
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() =>
+                                (props as EditableProps).onRemoveSet(block.clientId, i)
+                              }
+                              aria-label={`Remove set ${i + 1}`}
+                              className="h-6 w-6"
+                            >
+                              <MinusCircle className="h-3.5 w-3.5" />
+                            </Button>
+                          ) : (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  aria-label={`Remove set ${i + 1}`}
+                                  className="h-6 w-6"
+                                >
+                                  <MinusCircle className="h-3.5 w-3.5" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent size="sm">
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Remove block?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Removing the only set will remove the &ldquo;
+                                    {block.habitName}&rdquo; block from this routine.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    variant="destructive"
+                                    onClick={() =>
+                                      (props as EditableProps).onRemoveBlock(
+                                        block.clientId,
+                                      )
+                                    }
+                                  >
+                                    Remove
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-sm text-foreground">
+                            {formatMinutes(s.durationSeconds)}
+                          </span>
+                          {s.breakSeconds > 0 ? (
+                            <span className="text-xs text-muted-foreground italic flex items-center gap-1">
+                              <Pause className="h-3 w-3" />
+                              {formatMinutes(s.breakSeconds)} break
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground italic">
+                              No break
+                            </span>
+                          )}
+                          <span />
+                        </>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
-          </motion.div>
-        ))}
-        </AnimatePresence>
-      </div>
 
-      {/* Add set button */}
-      {isEditable && (
-        <button
-          onClick={() => (props as EditableProps).onAddSet(block.clientId)}
-          disabled={maxSets}
-          className="w-full py-2.5 text-xs text-primary/70 hover:text-primary hover:bg-primary/5 transition-colors border-t border-dashed border-border disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Plus className="h-3 w-3 inline mr-1" />
-          Add a Set
-        </button>
-      )}
+            {/* Add set button */}
+            {isEditable && (
+              <button
+                onClick={() => (props as EditableProps).onAddSet(block.clientId)}
+                disabled={maxSets}
+                className="w-full py-2.5 text-xs text-primary/70 hover:text-primary hover:bg-primary/5 transition-colors border-t border-dashed border-border disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Plus className="h-3 w-3 inline mr-1" />
+                Add a Set
+              </button>
+            )}
+          </>
+        )}
+      </motion.div>
     </Card>
   );
 }
