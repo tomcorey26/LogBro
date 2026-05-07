@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatTime } from "@/lib/format";
 import type { HeatmapGrid } from "@/lib/stats";
@@ -50,6 +51,7 @@ function buildMonthLabels(grid: HeatmapGrid): (string | null)[] {
 export function YearlyHeatmap({ grid }: { grid: HeatmapGrid }) {
   const monthLabels = buildMonthLabels(grid);
   const isEmpty = grid.weeks.every((w) => w.days.every((d) => d.seconds === 0));
+  const weekCount = grid.weeks.length;
 
   return (
     <Card>
@@ -64,39 +66,37 @@ export function YearlyHeatmap({ grid }: { grid: HeatmapGrid }) {
         </div>
 
         <div className="overflow-x-auto">
-          <div className="inline-flex flex-col gap-1 min-w-full">
+          <div
+            className="grid gap-0.5"
+            style={{
+              gridTemplateColumns: `auto repeat(${weekCount}, minmax(0, 1fr))`,
+              minWidth: `${weekCount * 10 + 32}px`,
+            }}
+          >
+            {/* Top-left corner */}
+            <div />
             {/* Month label row */}
-            <div className="flex gap-0.5 pl-8">
-              {monthLabels.map((label, i) => (
-                <div
-                  key={i}
-                  className="w-3 text-[10px] text-muted-foreground text-left"
-                >
-                  {label ?? ""}
-                </div>
-              ))}
-            </div>
-
-            {/* Grid: 7 rows × 53 columns */}
-            <div className="flex gap-0.5">
-              {/* Weekday labels column */}
-              <div className="flex flex-col gap-0.5 pr-1 w-7">
-                {WEEKDAY_LABELS.map((label, i) => (
-                  <div
-                    key={i}
-                    className="h-3 text-[10px] leading-3 text-muted-foreground"
-                  >
-                    {label}
-                  </div>
-                ))}
+            {monthLabels.map((label, i) => (
+              <div
+                key={`m${i}`}
+                className="text-[10px] text-muted-foreground text-left"
+              >
+                {label ?? ""}
               </div>
-              {/* Week columns */}
-              {grid.weeks.map((week, wi) => (
-                <div key={wi} className="flex flex-col gap-0.5">
-                  {week.days.map((day) => (
+            ))}
+
+            {/* For each weekday: label + cells across all weeks */}
+            {WEEKDAY_LABELS.map((dayLabel, dayIdx) => (
+              <Fragment key={dayIdx}>
+                <div className="text-[10px] leading-3 text-muted-foreground pr-1 self-center">
+                  {dayLabel}
+                </div>
+                {grid.weeks.map((week, wi) => {
+                  const day = week.days[dayIdx];
+                  return (
                     <div
-                      key={day.date}
-                      className={`h-3 w-3 rounded-sm ${
+                      key={`${wi}-${dayIdx}`}
+                      className={`aspect-square rounded-sm ${
                         day.isFuture
                           ? "bg-transparent"
                           : BUCKET_CLASSES[day.bucket]
@@ -109,22 +109,22 @@ export function YearlyHeatmap({ grid }: { grid: HeatmapGrid }) {
                             : `${formatTooltipDate(day.date)} · No sessions`
                       }
                     />
-                  ))}
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </Fragment>
+            ))}
+          </div>
 
-            {/* Legend */}
-            <div className="flex items-center justify-end gap-1 mt-2 text-[10px] text-muted-foreground">
-              <span>Less</span>
-              {([0, 1, 2, 3, 4] as const).map((b) => (
-                <span
-                  key={b}
-                  className={`block h-3 w-3 rounded-sm ${BUCKET_CLASSES[b]}`}
-                />
-              ))}
-              <span>More</span>
-            </div>
+          {/* Legend */}
+          <div className="flex items-center justify-end gap-1 mt-2 text-[10px] text-muted-foreground">
+            <span>Less</span>
+            {([0, 1, 2, 3, 4] as const).map((b) => (
+              <span
+                key={b}
+                className={`block h-3 w-3 rounded-sm ${BUCKET_CLASSES[b]}`}
+              />
+            ))}
+            <span>More</span>
           </div>
         </div>
       </CardContent>
