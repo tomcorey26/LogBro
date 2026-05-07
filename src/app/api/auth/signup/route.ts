@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { hashPassword, setSessionCookie } from "@/lib/auth";
-import { createUser, getUserByEmail } from "@/server/db/users";
+import { createUser, getUserByUsername } from "@/server/db/users";
 import { seedDefaultHabits } from "@/server/db/habits";
 
 const signupSchema = z.object({
-  email: z.string().email(),
+  username: z.string().min(3).max(32),
   password: z.string().min(8).max(72),
 });
 
@@ -19,23 +19,23 @@ export async function POST(request: Request) {
   const parsed = signupSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Invalid email or password (min 8 chars)" },
+      { error: "Invalid username (3-32 chars) or password (min 8 chars)" },
       { status: 400 },
     );
   }
 
-  const { email, password } = parsed.data;
+  const { username, password } = parsed.data;
 
-  const existing = await getUserByEmail(email);
+  const existing = await getUserByUsername(username);
   if (existing) {
     return NextResponse.json(
-      { error: "Email already in use" },
+      { error: "Username already in use" },
       { status: 409 },
     );
   }
 
   const passwordHash = await hashPassword(password);
-  const user = await createUser(email, passwordHash);
+  const user = await createUser(username, passwordHash);
   try {
     await seedDefaultHabits(user.id);
   } catch (err) {
@@ -43,5 +43,5 @@ export async function POST(request: Request) {
   }
 
   await setSessionCookie(user.id);
-  return NextResponse.json({ id: user.id, email: user.email });
+  return NextResponse.json({ id: user.id, username: user.username });
 }
