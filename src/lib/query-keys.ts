@@ -10,9 +10,6 @@ export const queryKeys = {
     list: (filters: { habitId?: string; range?: string; viewMode: string }) =>
       ['history', 'list', filters] as const,
   },
-  rankings: {
-    all: ['rankings'] as const,
-  },
   stats: {
     all: ['stats'] as const,
   },
