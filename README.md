@@ -9,8 +9,7 @@
 </p>
 
 <p align="center">
-  Build practice routines for guitar, coding, art — anything you want to master.<br/>
-  Track every session. Log the grind. Watch mastery get closer.
+  Time block your day like a workout routine
 </p>
 
 ---
