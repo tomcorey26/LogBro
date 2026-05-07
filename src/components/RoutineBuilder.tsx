@@ -17,6 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { RoutineStickyHeader } from "@/components/RoutineStickyHeader";
 import { RoutineBlockCard } from "@/components/RoutineBlockCard";
 import { HabitPicker } from "@/components/HabitPicker";
@@ -28,7 +29,6 @@ import type { RoutineBuilderState } from "@/hooks/use-routine-builder";
 import type { Habit } from "@/lib/types";
 
 type PickerView =
-  | { type: "closed" }
   | { type: "list" }
   | { type: "config"; habitId: number; habitName: string };
 
@@ -63,7 +63,8 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
     toPayload,
   } = builder;
 
-  const [pickerView, setPickerView] = useState<PickerView>({ type: "closed" });
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerView, setPickerView] = useState<PickerView>({ type: "list" });
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -154,7 +155,12 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
       })),
     });
     trigger("success");
-    setPickerView({ type: "closed" });
+    setPickerOpen(false);
+  }
+
+  function handleOpenPicker() {
+    setPickerView({ type: "list" });
+    setPickerOpen(true);
   }
 
   async function handleCreateHabit(habitName: string) {
@@ -214,7 +220,7 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
         <Button
           variant="outline"
           className="w-full"
-          onClick={() => setPickerView({ type: "list" })}
+          onClick={handleOpenPicker}
           disabled={blocks.length >= 20}
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -222,14 +228,13 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
         </Button>
       </div>
 
-      {/* Habit picker modal */}
-      {pickerView.type !== "closed" && (
-        <div className="absolute inset-0 z-50 bg-background">
+      {/* Habit picker dialog */}
+      <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+        <DialogContent>
           {pickerView.type === "list" ? (
             <HabitPicker
               habits={habits}
               onSelectHabit={handleSelectHabit}
-              onClose={() => setPickerView({ type: "closed" })}
               onCreateHabit={handleCreateHabit}
             />
           ) : (
@@ -239,8 +244,8 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
               onBack={() => setPickerView({ type: "list" })}
             />
           )}
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
       {/* Discard confirmation */}
       <AlertDialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>

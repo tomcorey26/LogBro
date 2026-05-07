@@ -4,6 +4,12 @@ import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Stepper } from "@/components/ui/stepper";
+import {
+  DialogBody,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ArrowLeft } from "lucide-react";
 
 type HabitBlockConfigFormProps = {
@@ -40,15 +46,15 @@ export function HabitBlockConfigForm({
   const isValid = sets >= 1 && sets <= 10 && durationMinutes >= 1 && durationMinutes <= 120 && breakMinutes >= 0 && breakMinutes <= 60;
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-        <Button variant="ghost" size="icon-sm" onClick={onBack}>
+    <form onSubmit={handleSubmit} className="contents">
+      <DialogHeader>
+        <Button variant="ghost" size="icon-sm" type="button" onClick={onBack}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h3 className="text-sm font-semibold">{habitName}</h3>
-      </div>
+        <DialogTitle>{habitName}</DialogTitle>
+      </DialogHeader>
 
-      <form onSubmit={handleSubmit} className="flex-1 flex flex-col px-4 py-4 gap-4">
+      <DialogBody className="flex flex-col gap-4">
         <div>
           <Label htmlFor="notes" className="text-xs">Notes</Label>
           <textarea
@@ -63,7 +69,7 @@ export function HabitBlockConfigForm({
 
         <div className="flex flex-col divide-y divide-border rounded-md border border-border">
           <div className="flex items-center justify-between px-3 py-2">
-            <Label className="text-xs">Number of Sets*</Label>
+            <Label className="text-xs">Number of Sets *</Label>
             <Stepper
               value={sets}
               min={1}
@@ -74,7 +80,7 @@ export function HabitBlockConfigForm({
             />
           </div>
           <div className="flex items-center justify-between px-3 py-2">
-            <Label className="text-xs">Duration*</Label>
+            <Label className="text-xs">Duration *</Label>
             <Stepper
               value={durationMinutes}
               min={1}
@@ -84,7 +90,7 @@ export function HabitBlockConfigForm({
             />
           </div>
           <div className="flex items-center justify-between px-3 py-2">
-            <Label className="text-xs">Break*</Label>
+            <Label className="text-xs">Break</Label>
             <Stepper
               value={breakMinutes}
               min={0}
@@ -94,16 +100,16 @@ export function HabitBlockConfigForm({
             />
           </div>
         </div>
+      </DialogBody>
 
-        <div className="mt-auto flex gap-2 pt-4">
-          <Button type="submit" disabled={!isValid}>
-            Add to Routine
-          </Button>
-          <Button type="button" variant="ghost" onClick={onBack}>
-            Cancel
-          </Button>
-        </div>
-      </form>
-    </div>
+      <DialogFooter className="justify-end">
+        <Button type="button" variant="ghost" onClick={onBack}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={!isValid}>
+          Add to Routine
+        </Button>
+      </DialogFooter>
+    </form>
   );
 }
