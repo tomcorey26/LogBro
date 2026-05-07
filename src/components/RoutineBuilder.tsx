@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Reorder, useDragControls } from "framer-motion";
 import { toast } from "sonner";
@@ -25,6 +25,7 @@ import { HabitBlockConfigForm } from "@/components/HabitBlockConfigForm";
 import { useHabits, useAddHabit } from "@/hooks/use-habits";
 import { useCreateRoutine, useUpdateRoutine, useDeleteRoutine } from "@/hooks/use-routines";
 import { useHaptics } from "@/hooks/use-haptics";
+import { useNavigationGuard, type NavigationAttempt } from "@/hooks/use-navigation-guard";
 import type { RoutineBuilderState } from "@/hooks/use-routine-builder";
 import type { Habit, BuilderBlock } from "@/lib/types";
 
@@ -69,6 +70,15 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
   const [pickerView, setPickerView] = useState<PickerView>({ type: "list" });
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [pendingNavigate, setPendingNavigate] = useState<(() => void) | null>(null);
+
+  useNavigationGuard({
+    shouldGuard: isDirty,
+    onAttempt: (_attempt: NavigationAttempt, proceed) => {
+      setPendingNavigate(() => proceed);
+      setShowDiscardDialog(true);
+    },
+  });
 
   const isSaving = createRoutine.isPending || updateRoutine.isPending;
   const canSave = name.trim().length > 0 && blocks.length > 0;
@@ -81,18 +91,9 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
   }
   const totalMinutes = Math.round(totalSeconds / 60);
 
-  // beforeunload handler
-  useEffect(() => {
-    if (!isDirty) return;
-    const handler = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-    };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [isDirty]);
-
   function handleDiscard() {
     if (isDirty) {
+      setPendingNavigate(() => () => router.push("/routines"));
       setShowDiscardDialog(true);
     } else {
       router.push("/routines");
@@ -101,7 +102,15 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
 
   function handleConfirmDiscard() {
     setShowDiscardDialog(false);
-    router.push("/routines");
+    builder.markClean();
+    const nav = pendingNavigate ?? (() => router.push("/routines"));
+    setPendingNavigate(null);
+    nav();
+  }
+
+  function handleCancelDiscard() {
+    setShowDiscardDialog(false);
+    setPendingNavigate(null);
   }
 
   async function handleDelete() {
@@ -250,12 +259,12 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
       </Dialog>
 
       {/* Discard confirmation */}
-      <AlertDialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>
+      <AlertDialog open={showDiscardDialog} onOpenChange={(open) => { if (!open) handleCancelDiscard(); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Discard changes?</AlertDialogTitle>
+            <AlertDialogTitle>Unsaved changes?</AlertDialogTitle>
             <AlertDialogDescription>
-              You have unsaved changes. Are you sure you want to discard them?
+              You have unsaved changes. If you leave now, they will be lost.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -264,7 +273,7 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
               variant="destructive"
               onClick={handleConfirmDiscard}
             >
-              Discard
+              Leave
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
