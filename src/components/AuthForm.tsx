@@ -56,25 +56,23 @@ function FloatingEmojis() {
   );
 }
 
+const usernameSchema = z
+  .string()
+  .min(3, "Username must be at least 3 characters")
+  .max(32, "Username must be at most 32 characters")
+  .regex(
+    /^[a-zA-Z0-9_-]+$/,
+    "Letters, digits, underscores, and hyphens only",
+  );
+
 const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
+  username: usernameSchema,
   password: z.string().min(1, "Password is required"),
 });
 
 const signupSchema = z.object({
-  username: z
-    .string()
-    .min(1, "Username is required")
-    .min(3, "Username must be at least 3 characters")
-    .max(32, "Username must be at most 32 characters")
-    .regex(
-      /^[a-zA-Z0-9_-]+$/,
-      "Letters, digits, underscores, and hyphens only",
-    ),
-  password: z
-    .string()
-    .min(1, "Password is required")
-    .min(8, "Password must be at least 8 characters"),
+  username: usernameSchema,
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 type FormData = z.infer<typeof signupSchema>;

@@ -19,6 +19,19 @@ describe("POST /api/auth/login", () => {
     vi.mocked(setSessionCookie).mockResolvedValue(undefined);
   });
 
+  it("rejects email-format username before any DB lookup", async () => {
+    const { POST } = await import("./route");
+    const req = new Request("http://localhost/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: "tom@example.com", password: "password123" }),
+    });
+    const res = await POST(req);
+
+    expect(res.status).toBe(400);
+    expect(mockGetUserByUsername).not.toHaveBeenCalled();
+  });
+
   it("normalizes username to lowercase before lookup", async () => {
     mockGetUserByUsername.mockResolvedValue({
       id: 7,

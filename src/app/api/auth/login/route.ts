@@ -4,7 +4,11 @@ import { verifyPassword, setSessionCookie } from "@/lib/auth";
 import { getUserByUsername } from "@/server/db/users";
 
 const loginSchema = z.object({
-  username: z.string().min(1),
+  username: z
+    .string()
+    .min(3)
+    .max(32)
+    .regex(/^[a-zA-Z0-9_-]+$/),
   password: z.string(),
 });
 
