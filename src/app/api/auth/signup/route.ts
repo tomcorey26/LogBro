@@ -28,7 +28,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const { username, password } = parsed.data;
+  const username = parsed.data.username.toLowerCase();
+  const { password } = parsed.data;
 
   const existing = await getUserByUsername(username);
   if (existing) {

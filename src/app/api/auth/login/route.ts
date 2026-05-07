@@ -20,7 +20,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  const { username, password } = parsed.data;
+  const username = parsed.data.username.toLowerCase();
+  const { password } = parsed.data;
 
   const user = await getUserByUsername(username);
   if (!user) {

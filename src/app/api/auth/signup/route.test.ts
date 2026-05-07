@@ -46,6 +46,24 @@ describe("POST /api/auth/signup", () => {
     expect(mockSeedDefaultHabits).toHaveBeenCalledWith(42);
   });
 
+  it("normalizes username to lowercase before lookup and create", async () => {
+    mockGetUserByUsername.mockResolvedValue(null);
+    mockCreateUser.mockResolvedValue({ id: 7, username: "mixedcase" });
+    mockSeedDefaultHabits.mockResolvedValue(undefined);
+
+    const { POST } = await import("./route");
+    const req = new Request("http://localhost/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: "MixedCase", password: "password123" }),
+    });
+    const res = await POST(req);
+
+    expect(res.status).toBe(200);
+    expect(mockGetUserByUsername).toHaveBeenCalledWith("mixedcase");
+    expect(mockCreateUser).toHaveBeenCalledWith("mixedcase", "hashed");
+  });
+
   it("rejects usernames with disallowed characters", async () => {
     const { POST } = await import("./route");
     const req = new Request("http://localhost/api/auth/signup", {
