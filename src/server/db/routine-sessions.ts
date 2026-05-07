@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { db } from '@/db';
 import {
   routineSessions,
@@ -244,7 +244,22 @@ export async function saveActiveRoutineSessionForUser(
         routineSessionId: session.id,
       };
     });
-    await tx.insert(timeSessions).values(inserts).onConflictDoNothing();
+    // On (userId, startTime) conflict, prefer the newest values rather than silently
+    // dropping. Concurrent or replayed saves are rare but real; doing nothing would
+    // hide which write actually landed and could mask a stale duration.
+    await tx
+      .insert(timeSessions)
+      .values(inserts)
+      .onConflictDoUpdate({
+        target: [timeSessions.userId, timeSessions.startTime],
+        set: {
+          habitId: sql`excluded.habit_id`,
+          endTime: sql`excluded.end_time`,
+          durationSeconds: sql`excluded.duration_seconds`,
+          timerMode: sql`excluded.timer_mode`,
+          routineSessionId: sql`excluded.routine_session_id`,
+        },
+      });
 
     // Persist finishedAt derived from the latest set completion so it matches the
     // value the summary endpoint reports.
