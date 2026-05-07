@@ -48,7 +48,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <TabNav />
             </div>
 
-            <main className="flex-1 min-h-0 overflow-auto py-0.5 px-4 md:px-6 md:pt-6 pb-16 md:pb-6">
+            <main className="flex-1 min-h-0 overflow-auto py-0.5 px-4 md:px-6 md:pt-6 pb-[env(safe-area-inset-bottom)]">
               <div className="w-full md:max-w-2xl md:mx-auto min-h-full flex flex-col">
                 {children}
               </div>
