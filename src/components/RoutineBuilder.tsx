@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
+import { Reorder, useDragControls } from "framer-motion";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ import { useHabits, useAddHabit } from "@/hooks/use-habits";
 import { useCreateRoutine, useUpdateRoutine, useDeleteRoutine } from "@/hooks/use-routines";
 import { useHaptics } from "@/hooks/use-haptics";
 import type { RoutineBuilderState } from "@/hooks/use-routine-builder";
-import type { Habit } from "@/lib/types";
+import type { Habit, BuilderBlock } from "@/lib/types";
 
 type PickerView =
   | { type: "list" }
@@ -60,6 +60,8 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
     removeSet,
     updateSetDuration,
     updateSetBreak,
+    moveBlock,
+    reorderBlocks,
     toPayload,
   } = builder;
 
@@ -67,6 +69,7 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
   const [pickerView, setPickerView] = useState<PickerView>({ type: "list" });
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isReordering, setIsReordering] = useState(false);
 
   const isSaving = createRoutine.isPending || updateRoutine.isPending;
   const canSave = name.trim().length > 0 && blocks.length > 0;
@@ -193,28 +196,30 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
         />
 
         {/* Habit blocks */}
-        <AnimatePresence initial={false}>
-          {blocks.map((block) => (
-            <motion.div
+        <Reorder.Group
+          axis="y"
+          values={blocks}
+          onReorder={reorderBlocks}
+          className="space-y-4"
+        >
+          {blocks.map((block, i) => (
+            <ReorderableBlock
               key={block.clientId}
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <RoutineBlockCard
-                block={block}
-                mode="editable"
-                onRemoveBlock={removeBlock}
-                onAddSet={addSet}
-                onRemoveSet={removeSet}
-                onUpdateDuration={updateSetDuration}
-                onUpdateBreak={updateSetBreak}
-                onUpdateNotes={updateBlockNotes}
-              />
-            </motion.div>
+              block={block}
+              isCompact={isReordering}
+              onDragStart={() => setIsReordering(true)}
+              onDragEnd={() => setIsReordering(false)}
+              onRemoveBlock={removeBlock}
+              onAddSet={addSet}
+              onRemoveSet={removeSet}
+              onUpdateDuration={updateSetDuration}
+              onUpdateBreak={updateSetBreak}
+              onUpdateNotes={updateBlockNotes}
+              onMoveUp={i > 0 ? () => moveBlock(i, i - 1) : undefined}
+              onMoveDown={i < blocks.length - 1 ? () => moveBlock(i, i + 1) : undefined}
+            />
           ))}
-        </AnimatePresence>
+        </Reorder.Group>
 
         {/* Add habits button */}
         <Button
@@ -289,5 +294,52 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+type ReorderableBlockProps = {
+  block: BuilderBlock;
+  isCompact: boolean;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+  onRemoveBlock: (clientId: string) => void;
+  onAddSet: (clientId: string) => void;
+  onRemoveSet: (clientId: string, setIndex: number) => void;
+  onUpdateDuration: (clientId: string, setIndex: number, durationSeconds: number) => void;
+  onUpdateBreak: (clientId: string, setIndex: number, breakSeconds: number) => void;
+  onUpdateNotes: (clientId: string, notes: string) => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+};
+
+function ReorderableBlock({
+  block,
+  isCompact,
+  onDragStart,
+  onDragEnd,
+  onMoveUp,
+  onMoveDown,
+  ...handlers
+}: ReorderableBlockProps) {
+  const dragControls = useDragControls();
+  return (
+    <Reorder.Item
+      value={block}
+      dragListener={false}
+      dragControls={dragControls}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      layout
+    >
+      <RoutineBlockCard
+        block={block}
+        mode="editable"
+        dragControls={dragControls}
+        isCompact={isCompact}
+        onMoveUp={onMoveUp}
+        onMoveDown={onMoveDown}
+        {...handlers}
+      />
+    </Reorder.Item>
   );
 }
