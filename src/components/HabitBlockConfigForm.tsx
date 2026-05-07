@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Stepper } from "@/components/ui/stepper";
 import { ArrowLeft } from "lucide-react";
 
 type HabitBlockConfigFormProps = {
@@ -61,44 +61,38 @@ export function HabitBlockConfigForm({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <Label htmlFor="sets" className="text-xs">Number of Sets*</Label>
-            <Input
-              id="sets"
-              type="number"
+        <div className="flex flex-col divide-y divide-border rounded-md border border-border">
+          <div className="flex items-center justify-between px-3 py-2">
+            <Label className="text-xs">Number of Sets*</Label>
+            <Stepper
+              value={sets}
               min={1}
               max={10}
-              value={sets}
-              onChange={(e) => setSets(Number(e.target.value))}
-              className="mt-1"
+              onChange={setSets}
+              suffix="sets"
+              aria-label="Number of Sets"
             />
           </div>
-          <div>
-            <Label htmlFor="duration" className="text-xs">Duration (minutes)*</Label>
-            <Input
-              id="duration"
-              type="number"
+          <div className="flex items-center justify-between px-3 py-2">
+            <Label className="text-xs">Duration*</Label>
+            <Stepper
+              value={durationMinutes}
               min={1}
               max={120}
-              value={durationMinutes}
-              onChange={(e) => setDurationMinutes(Number(e.target.value))}
-              className="mt-1"
+              onChange={setDurationMinutes}
+              aria-label="Duration in minutes"
             />
           </div>
-        </div>
-
-        <div className="w-1/2">
-          <Label htmlFor="break" className="text-xs">Break (minutes)*</Label>
-          <Input
-            id="break"
-            type="number"
-            min={0}
-            max={60}
-            value={breakMinutes}
-            onChange={(e) => setBreakMinutes(Number(e.target.value))}
-            className="mt-1"
-          />
+          <div className="flex items-center justify-between px-3 py-2">
+            <Label className="text-xs">Break*</Label>
+            <Stepper
+              value={breakMinutes}
+              min={0}
+              max={60}
+              onChange={setBreakMinutes}
+              aria-label="Break in minutes"
+            />
+          </div>
         </div>
 
         <div className="mt-auto flex gap-2 pt-4">
