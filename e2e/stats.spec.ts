@@ -31,9 +31,9 @@ test.describe('Stats dashboard', () => {
     await expect(page.getByText('This month')).toBeVisible();
     await expect(page.getByText('Streaks')).toBeVisible();
     await expect(page.getByText('Last 12 months')).toBeVisible();
-    await expect(page.getByText('Rankings')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Rankings' })).toBeVisible();
     await expect(page.getByText('Guitar')).toBeVisible();
-    await expect(page.getByText('3', { exact: false })).toBeVisible(); // current streak
+    await expect(page.getByText('3 days', { exact: false }).first()).toBeVisible(); // current streak
   });
 
   test('/rankings redirects to /stats', async ({ page }) => {
