@@ -23,7 +23,7 @@ describe('ThemeProvider', () => {
   });
 
   it('defaults to light when no preference is stored', () => {
-    let captured: { theme: string } | undefined;
+    let captured: ReturnType<typeof useTheme> | undefined;
     render(
       <ThemeProvider>
         <ThemeReader onRender={(ctx) => { captured = ctx; }} />
@@ -33,9 +33,9 @@ describe('ThemeProvider', () => {
     expect(document.documentElement.classList.contains('dark')).toBe(false);
   });
 
-  it('reads stored preference on mount', () => {
+  it('reads stored dark preference on mount', () => {
     localStorage.setItem(STORAGE_KEY, 'dark');
-    let captured: { theme: string } | undefined;
+    let captured: ReturnType<typeof useTheme> | undefined;
     render(
       <ThemeProvider>
         <ThemeReader onRender={(ctx) => { captured = ctx; }} />
@@ -45,7 +45,7 @@ describe('ThemeProvider', () => {
     expect(document.documentElement.classList.contains('dark')).toBe(true);
   });
 
-  it('setTheme persists and applies the dark class', () => {
+  it('setTheme persists and toggles the dark class', () => {
     let captured: ReturnType<typeof useTheme> | undefined;
     render(
       <ThemeProvider>
@@ -59,29 +59,5 @@ describe('ThemeProvider', () => {
     act(() => { captured!.setTheme('light'); });
     expect(localStorage.getItem(STORAGE_KEY)).toBe('light');
     expect(document.documentElement.classList.contains('dark')).toBe(false);
-  });
-
-  it('setTheme("system") follows prefers-color-scheme', () => {
-    const mql = {
-      matches: true,
-      media: '(prefers-color-scheme: dark)',
-      addEventListener: () => {},
-      removeEventListener: () => {},
-      addListener: () => {},
-      removeListener: () => {},
-      dispatchEvent: () => false,
-      onchange: null,
-    } as unknown as MediaQueryList;
-    window.matchMedia = () => mql;
-
-    let captured: ReturnType<typeof useTheme> | undefined;
-    render(
-      <ThemeProvider>
-        <ThemeReader onRender={(ctx) => { captured = ctx; }} />
-      </ThemeProvider>
-    );
-    act(() => { captured!.setTheme('system'); });
-    expect(localStorage.getItem(STORAGE_KEY)).toBe('system');
-    expect(document.documentElement.classList.contains('dark')).toBe(true);
   });
 });

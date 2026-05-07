@@ -27,12 +27,9 @@ export const viewport: Viewport = {
 
 const NO_FLASH_SCRIPT = `(function() {
   try {
-    var stored = localStorage.getItem('logbro:theme');
-    var theme = stored === 'dark' || stored === 'system' ? stored : 'light';
-    var resolved = theme === 'system'
-      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-      : theme;
-    if (resolved === 'dark') document.documentElement.classList.add('dark');
+    if (localStorage.getItem('logbro:theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
   } catch (e) {}
 })();`;
 

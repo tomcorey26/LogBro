@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'light' | 'dark' | 'system';
+type Theme = 'light' | 'dark';
 
 type ThemeContextValue = {
   theme: Theme;
@@ -14,31 +14,18 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function readStored(): Theme {
   if (typeof window === 'undefined') return 'light';
-  const value = window.localStorage.getItem(STORAGE_KEY);
-  return value === 'dark' || value === 'system' ? value : 'light';
+  return window.localStorage.getItem(STORAGE_KEY) === 'dark' ? 'dark' : 'light';
 }
 
-function resolve(theme: Theme): 'light' | 'dark' {
-  if (theme !== 'system') return theme;
-  if (typeof window === 'undefined') return 'light';
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-function applyClass(resolved: 'light' | 'dark') {
-  const root = document.documentElement;
-  root.classList.toggle('dark', resolved === 'dark');
+function applyClass(theme: Theme) {
+  document.documentElement.classList.toggle('dark', theme === 'dark');
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => readStored());
 
   useEffect(() => {
-    applyClass(resolve(theme));
-    if (theme !== 'system') return;
-    const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = () => applyClass(resolve('system'));
-    mql.addEventListener('change', handler);
-    return () => mql.removeEventListener('change', handler);
+    applyClass(theme);
   }, [theme]);
 
   const setTheme = (next: Theme) => {
