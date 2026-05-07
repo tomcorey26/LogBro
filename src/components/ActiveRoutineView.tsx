@@ -109,7 +109,7 @@ export function ActiveRoutineView() {
               phase === 'set'
                 ? 'bg-primary animate-pulse'
                 : phase === 'break'
-                  ? 'bg-sky-500 animate-pulse'
+                  ? 'bg-info animate-pulse'
                   : 'bg-muted-foreground/60';
             return (
               <div className="flex items-center gap-1.5">
