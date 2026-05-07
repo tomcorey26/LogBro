@@ -20,7 +20,9 @@ export async function POST(
     const error =
       result.conflict === 'empty_routine'
         ? 'Routine has no sets'
-        : 'Active timer exists';
+        : result.conflict === 'active_session_exists'
+          ? 'Another routine is already in progress'
+          : 'Active timer exists';
     return NextResponse.json({ error, code: result.conflict }, { status: 409 });
   }
 

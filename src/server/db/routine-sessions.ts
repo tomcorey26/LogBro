@@ -339,9 +339,10 @@ export async function completeSetForUser(
     if (!set) return null;
     const setRow = set.routine_session_sets;
 
-    // Idempotency guard: a stale setRowId (replayed request, unmount/remount race
-    // in RoutineSync) must not overwrite a completed set's recorded duration.
-    if (setRow.completedAt) return null;
+    // Idempotency: a stale setRowId (replayed request, unmount/remount race in
+    // RoutineSync) must not overwrite the recorded duration. Return the current
+    // session as a no-op success so retries don't surface a misleading 404.
+    if (setRow.completedAt) return await reloadActiveSession(tx, userId);
 
     const now = endedAt ?? new Date();
 

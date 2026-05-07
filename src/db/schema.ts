@@ -52,7 +52,7 @@ export const routineSessions = sqliteTable('routine_sessions', {
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   routineId: integer('routine_id').references(() => routines.id, { onDelete: 'set null' }),
   routineNameSnapshot: text('routine_name_snapshot').notNull(),
-  status: text('status').notNull(),
+  status: text('status').notNull().$type<'active' | 'completed'>(),
   startedAt: integer('started_at', { mode: 'timestamp' }).notNull(),
   finishedAt: integer('finished_at', { mode: 'timestamp' }),
 }, (table) => [
@@ -88,7 +88,7 @@ export const activeTimers = sqliteTable('active_timers', {
   // SQLite's `ALTER TABLE ADD COLUMN ... REFERENCES` (used in 0006) drops the
   // ON DELETE clause. Runtime cleanup is handled in routine-sessions.ts.
   routineSessionSetId: integer('routine_session_set_id').references(() => routineSessionSets.id, { onDelete: 'cascade' }),
-  phase: text('phase'),
+  phase: text('phase').$type<'set' | 'break'>(),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({

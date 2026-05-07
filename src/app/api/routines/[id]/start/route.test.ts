@@ -29,22 +29,25 @@ describe('POST /api/routines/[id]/start', () => {
     expect(res.status).toBe(404);
   });
 
-  it('returns 409 with code when active timer conflict', async () => {
+  it('returns 409 with code+message when active timer conflict', async () => {
     getSessionUserId.mockResolvedValue(1);
     startRoutineSessionForUser.mockResolvedValue({ conflict: 'active_timer_exists' });
     const res = await POST(req(), { params: Promise.resolve({ id: '1' }) });
     expect(res.status).toBe(409);
     const body = await res.json();
     expect(body.code).toBe('active_timer_exists');
+    expect(body.error).toMatch(/timer/i);
   });
 
-  it('returns 409 with code when active session conflict', async () => {
+  it('returns 409 with distinct message when active session conflict', async () => {
     getSessionUserId.mockResolvedValue(1);
     startRoutineSessionForUser.mockResolvedValue({ conflict: 'active_session_exists' });
     const res = await POST(req(), { params: Promise.resolve({ id: '1' }) });
     expect(res.status).toBe(409);
     const body = await res.json();
     expect(body.code).toBe('active_session_exists');
+    expect(body.error).toMatch(/routine/i);
+    expect(body.error).not.toMatch(/timer/i);
   });
 
   it('returns 409 with code when routine is empty', async () => {
