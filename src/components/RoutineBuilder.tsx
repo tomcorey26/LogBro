@@ -321,7 +321,6 @@ function ReorderableBlock({
       dragControls={dragControls}
       dragElastic={0}
       dragMomentum={false}
-      transition={{ duration: 0 }}
     >
       <RoutineBlockCard
         block={block}
