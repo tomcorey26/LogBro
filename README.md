@@ -18,7 +18,7 @@
 
 The "10,000 hours" rule says it takes roughly 10,000 hours of deliberate practice to master a skill. Whether or not the exact number holds up, the core truth is real: consistent, tracked practice is how you get better at anything.
 
-LogBro is a PWA I built to scratch my own itch — I wanted a simple way to time my practice sessions across multiple skills, stack them into daily routines, and actually see the hours add up over time. Think of it like a gym tracker, but for your brain.
+LogBro is a app I built to scratch my own itch. I wanted a simple way to time my practice sessions across multiple skills, stack them into daily routines, and actually see the hours add up over time. Think of it like a gym tracker, but for your brain.
 
 ## What It Does
 
@@ -30,7 +30,7 @@ LogBro is a PWA I built to scratch my own itch — I wanted a simple way to time
 
 ## Tech Stack
 
-This project was a playground for me to go deep on a modern full-stack setup:
+This project was a playground for me to go deep on a modern full-stack setup, and also test the abilities of agentic coding
 
 | Layer | Tech |
 |-------|------|
@@ -84,6 +84,8 @@ src/
 ## What I Learned
 
 Building this taught me a lot about real-time state sync (keeping a running timer consistent between client, server, and database), optimistic UI updates with TanStack Query, and structuring a Next.js app that feels snappy as a native mobile app (PWA + haptic feedback + smooth animations).
+
+I also learned how to work with AI agents in a way that produces good results. I utilized agent skills (https://github.com/obra/superpowers has lead to amazing results), context management, validation with linting/tests, a TTS mic input for prompting, claude code review for PRs. It is undeniable that this new AI tooling is incredibly useful, to build this app it was 95% prompting and 5% hand coding.
 
 ---
 
