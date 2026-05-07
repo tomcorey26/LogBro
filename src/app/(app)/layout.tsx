@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import { Providers } from "@/components/Providers";
 import { TabNav } from "@/components/TabNav";
 import { LogoutButton } from "@/components/LogoutButton";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { buttonVariants } from "@/components/ui/button";
 import { TimerSync } from "@/components/TimerSync";
 import { MiniTimerBar } from "@/components/MiniTimerBar";
@@ -22,6 +23,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <h1 className="text-xl font-mono font-semibold">{APP_NAME}</h1>
           </div>
           <div className="flex items-center gap-1">
+            <ThemeToggle />
             <Link
               href="/account"
               className={buttonVariants({ variant: "ghost", size: "sm" })}

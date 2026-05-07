@@ -6,9 +6,9 @@ import { useRankings } from '@/hooks/use-rankings';
 import { PageHeader } from '@/components/ui/page-header';
 
 const RANK_COLORS: Record<number, string> = {
-  1: 'text-yellow-500',
-  2: 'text-gray-400',
-  3: 'text-amber-600',
+  1: 'text-rank-gold',
+  2: 'text-rank-silver',
+  3: 'text-rank-bronze',
 };
 
 type Ranking = {

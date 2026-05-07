@@ -90,7 +90,7 @@ function SuccessScreen({ durationSeconds }: { durationSeconds: number }) {
           }}
           transition={{ type: "spring", stiffness: 200, damping: 12 }}
         >
-          &#127942;
+          🏆
         </motion.p>
         <motion.h1
           className="text-2xl font-bold mb-3"
