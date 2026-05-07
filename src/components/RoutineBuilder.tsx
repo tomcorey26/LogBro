@@ -197,10 +197,11 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
 
         {/* Habit blocks */}
         <Reorder.Group
+          as="div"
           axis="y"
           values={blocks}
           onReorder={reorderBlocks}
-          className="space-y-4"
+          className="flex flex-col gap-4"
         >
           {blocks.map((block, i) => (
             <ReorderableBlock
@@ -324,12 +325,12 @@ function ReorderableBlock({
   const dragControls = useDragControls();
   return (
     <Reorder.Item
+      as="div"
       value={block}
       dragListener={false}
       dragControls={dragControls}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
-      layout
     >
       <RoutineBlockCard
         block={block}

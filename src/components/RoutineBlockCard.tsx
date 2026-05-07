@@ -205,9 +205,8 @@ export function RoutineBlockCard(props: Props) {
         </div>
       )}
 
-      <motion.div layout={isEditable ? "size" : false}>
-        {!isCompact && (
-          <>
+      {!isCompact && (
+        <>
             {/* Notes input (editable) */}
             {isEditable && (
               <div className="mx-4 mb-2 relative">
@@ -365,9 +364,8 @@ export function RoutineBlockCard(props: Props) {
                 Add a Set
               </button>
             )}
-          </>
-        )}
-      </motion.div>
+        </>
+      )}
     </Card>
   );
 }
