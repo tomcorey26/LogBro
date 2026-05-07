@@ -141,7 +141,7 @@ export function AuthForm() {
             autoCapitalize="none"
             autoCorrect="off"
             spellCheck={false}
-            autoComplete={isLogin ? "username" : "username"}
+            autoComplete="username"
             {...register("username")}
             aria-invalid={!!errors.username}
             aria-describedby={errors.username ? "username-error" : undefined}
