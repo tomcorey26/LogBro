@@ -6,6 +6,8 @@ type HabitListProps = {
   habits: Habit[];
   renderAction?: (habit: Habit) => React.ReactNode;
   renderDetail?: (habit: Habit) => React.ReactNode;
+  renderActive?: (habit: Habit) => React.ReactNode;
+  activeHabitId?: number | null;
   onSelectHabit?: (habit: { id: number; name: string }) => void;
 };
 
@@ -13,6 +15,8 @@ export function HabitList({
   habits,
   renderAction,
   renderDetail,
+  renderActive,
+  activeHabitId,
   onSelectHabit,
 }: HabitListProps) {
   const sorted = [...habits].sort((a, b) => a.name.localeCompare(b.name));
@@ -25,31 +29,41 @@ export function HabitList({
         </p>
       ) : (
         <div className="space-y-1.5 pb-6">
-          {sorted.map((habit, index) => (
-            <div
-              key={habit.id}
-              data-tour={index === 0 ? "habits-first-card" : undefined}
-              className="flex items-center gap-3 px-3 py-3 rounded-xl bg-muted/30 border border-border/50 hover:bg-muted/50 transition-colors"
-            >
-              <button
-                type="button"
-                onClick={() =>
-                  onSelectHabit?.({ id: habit.id, name: habit.name })
-                }
-                className={`text-left flex-1 min-w-0 ${onSelectHabit ? "cursor-pointer" : "cursor-default"}`}
-              >
-                <span className="text-sm font-semibold text-foreground block truncate">
-                  {habit.name}
-                </span>
-                {renderDetail?.(habit)}
-              </button>
-              {renderAction && (
-                <div className="shrink-0">
-                  {renderAction(habit)}
+          {sorted.map((habit, index) => {
+            const dataTour = index === 0 ? "habits-first-card" : undefined;
+            if (activeHabitId === habit.id && renderActive) {
+              return (
+                <div key={habit.id} data-tour={dataTour}>
+                  {renderActive(habit)}
                 </div>
-              )}
-            </div>
-          ))}
+              );
+            }
+            return (
+              <div
+                key={habit.id}
+                data-tour={dataTour}
+                className="flex items-center gap-3 px-3 py-3 rounded-xl bg-muted/30 border border-border/50 hover:bg-muted/50 transition-colors"
+              >
+                <button
+                  type="button"
+                  onClick={() =>
+                    onSelectHabit?.({ id: habit.id, name: habit.name })
+                  }
+                  className={`text-left flex-1 min-w-0 ${onSelectHabit ? "cursor-pointer" : "cursor-default"}`}
+                >
+                  <span className="text-sm font-semibold text-foreground block truncate">
+                    {habit.name}
+                  </span>
+                  {renderDetail?.(habit)}
+                </button>
+                {renderAction && (
+                  <div className="shrink-0">
+                    {renderAction(habit)}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

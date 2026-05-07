@@ -11,19 +11,27 @@ export function MiniTimerBar() {
   const { trigger } = useHaptics();
   const activeTimer = useTimerStore((s) => s.activeTimer);
   const displayTime = useTimerStore((s) => s.displayTime);
+  const view = useTimerStore((s) => s.view);
   const routineMode = useRoutineSessionStore((s) => s.mode);
 
   // Hidden when an active/summary routine session is in flight (mutual exclusion)
   if (routineMode === "active" || routineMode === "summary") return null;
 
-  // Hidden when no timer or on /habits (which shows full timer view)
-  if (!activeTimer || pathname.startsWith("/habits")) return null;
+  if (!activeTimer) return null;
+
+  // On /habits, hide while a full-screen sub-view (timer/config/success) is up.
+  const onHabits = pathname.startsWith("/habits");
+  if (onHabits && view.type !== "habits_list") return null;
 
   return (
     <button
       onClick={() => {
         trigger("light");
-        router.push("/habits");
+        if (onHabits) {
+          useTimerStore.getState().showActiveTimer();
+        } else {
+          router.push("/habits");
+        }
       }}
       className="w-full pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] bg-primary/10 border-t border-primary/30 hover:bg-primary/15 transition-colors"
     >

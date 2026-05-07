@@ -134,6 +134,57 @@ function SuccessScreen({ durationSeconds }: { durationSeconds: number }) {
   );
 }
 
+function ActiveTimerListItem({
+  habit,
+  onClick,
+}: {
+  habit: Habit;
+  onClick: () => void;
+}) {
+  const activeTimer = habit.activeTimer!;
+  const isCountdown = activeTimer.targetDurationSeconds !== null;
+  const displayTime = useTimerStore((s) => s.displayTime);
+  const isTimesUp = useTimerStore((s) => s.isTimesUp);
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      className="flex items-center gap-3 px-3 py-3 rounded-xl bg-primary/10 border border-primary cursor-pointer hover:bg-primary/15 transition-colors"
+    >
+      <div className="flex-1 min-w-0">
+        <span className="text-sm font-semibold text-foreground block truncate">
+          {habit.name}
+        </span>
+        <div className="flex items-center gap-2 mt-0.5">
+          {isTimesUp ? (
+            <span className="text-xs font-semibold text-primary">
+              Time&apos;s up!
+            </span>
+          ) : (
+            <>
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="text-xs text-muted-foreground">
+                {isCountdown ? "Counting down..." : "Recording..."}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+      <span className="text-lg font-mono font-light text-primary shrink-0">
+        {displayTime}
+      </span>
+    </div>
+  );
+}
+
 type ViewMode = "list" | "grid";
 
 function getInitialViewMode(): ViewMode {
@@ -429,6 +480,13 @@ export function Dashboard({
       {viewMode === "list" ? (
         <HabitList
           habits={filteredHabits}
+          activeHabitId={activeTimer?.habitId ?? null}
+          renderActive={(habit) => (
+            <ActiveTimerListItem
+              habit={habit}
+              onClick={() => useTimerStore.getState().showActiveTimer()}
+            />
+          )}
           renderDetail={(habit) => (
             <div className="flex items-center gap-3 mt-0.5">
               <span className="text-xs text-primary font-mono">
