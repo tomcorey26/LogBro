@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifySessionToken } from '@/lib/auth';
 
-const PROTECTED_ROUTES = ['/habits', '/routines', '/history', '/rankings', '/timer', '/account'];
+const PROTECTED_ROUTES = ['/habits', '/routines', '/history', '/rankings', '/stats', '/timer', '/account'];
 const AUTH_ROUTES = ['/login'];
 
 // In-memory rate limiter for auth endpoints
@@ -65,5 +65,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/login', '/habits/:path*', '/routines/:path*', '/sessions/:path*', '/rankings/:path*', '/timer/:path*', '/account/:path*', '/api/auth/:path*'],
+  matcher: ['/login', '/habits/:path*', '/routines/:path*', '/sessions/:path*', '/rankings/:path*', '/stats/:path*', '/timer/:path*', '/account/:path*', '/api/auth/:path*'],
 };
