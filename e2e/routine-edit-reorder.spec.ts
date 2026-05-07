@@ -40,6 +40,11 @@ test.describe('Routine edit — reorder blocks', () => {
     await expect(alphaHeading).toBeVisible();
     await expect(betaHeading).toBeVisible();
 
+    // Confirm initial order: AlphaHabit before BetaHabit
+    const initialHeadings = page.getByRole('heading').filter({ hasText: /AlphaHabit|BetaHabit/ });
+    await expect(initialHeadings.nth(0)).toHaveText('AlphaHabit');
+    await expect(initialHeadings.nth(1)).toHaveText('BetaHabit');
+
     // Click "Move block down" on the first block (AlphaHabit). There are two such
     // buttons; the first one corresponds to AlphaHabit.
     const moveDownButtons = page.getByRole('button', { name: 'Move block down' });

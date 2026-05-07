@@ -121,4 +121,22 @@ describe('RoutineBlockCard editable', () => {
     expect(screen.getByPlaceholderText(/add notes/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /add a set/i })).toBeInTheDocument();
   });
+
+  it('hides up/down/delete buttons when isCompact is true', () => {
+    const onMoveUp = vi.fn();
+    const onMoveDown = vi.fn();
+    render(
+      <RoutineBlockCard
+        block={baseBlock}
+        mode="editable"
+        isCompact
+        onMoveUp={onMoveUp}
+        onMoveDown={onMoveDown}
+        {...noopHandlers}
+      />
+    );
+    expect(screen.queryByRole('button', { name: /move block up/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /move block down/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /delete block/i })).not.toBeInTheDocument();
+  });
 });

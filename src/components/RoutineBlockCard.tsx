@@ -138,7 +138,6 @@ export function RoutineBlockCard(props: Props) {
               aria-label="Reorder block"
               onPointerDown={(e) => dragControls.start(e)}
               className="touch-none text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing -ml-1"
-              style={{ touchAction: "none" }}
             >
               <GripVertical className="h-4 w-4" />
             </button>
@@ -147,7 +146,7 @@ export function RoutineBlockCard(props: Props) {
             {block.habitName}
           </h3>
         </div>
-        {isEditable && (
+        {isEditable && !isCompact && (
           <div className="flex items-center gap-0">
             <Button
               variant="ghost"
@@ -206,7 +205,7 @@ export function RoutineBlockCard(props: Props) {
         </div>
       )}
 
-      <motion.div layout="size">
+      <motion.div layout={isEditable ? "size" : false}>
         {!isCompact && (
           <>
             {/* Notes input (editable) */}
