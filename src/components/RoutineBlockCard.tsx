@@ -20,8 +20,10 @@ import {
   NotebookPen,
   Plus,
   MinusCircle,
+  GripVertical,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import type { DragControls } from "framer-motion";
 import { Stepper } from "@/components/ui/stepper";
 import type { BuilderBlock, RoutineSessionSet } from "@/lib/types";
 import { ActiveRoutineSetRow, type SetRowState } from "./ActiveRoutineSetRow";
@@ -48,6 +50,7 @@ type EditableProps = {
     breakSeconds: number,
   ) => void;
   onUpdateNotes: (clientId: string, notes: string) => void;
+  dragControls?: DragControls;
 };
 
 type ActiveRow = {
@@ -113,15 +116,29 @@ export function RoutineBlockCard(props: Props) {
 
   const { block, mode } = props;
   const isEditable = mode === "editable";
+  const dragControls = isEditable ? (props as EditableProps).dragControls : undefined;
   const maxSets = block.sets.length >= 10;
 
   return (
     <Card className="overflow-hidden pb-0">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <h3 className="text-base font-semibold">
-          {block.habitName}
-        </h3>
+      <div className="flex items-center justify-between px-4 pt-4 pb-2 gap-2">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          {dragControls && (
+            <button
+              type="button"
+              aria-label="Reorder block"
+              onPointerDown={(e) => dragControls.start(e)}
+              className="touch-none text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing -ml-1"
+              style={{ touchAction: "none" }}
+            >
+              <GripVertical className="h-4 w-4" />
+            </button>
+          )}
+          <h3 className="text-base font-semibold truncate">
+            {block.habitName}
+          </h3>
+        </div>
         {isEditable && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
