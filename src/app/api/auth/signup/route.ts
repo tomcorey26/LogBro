@@ -5,7 +5,11 @@ import { createUser, getUserByUsername } from "@/server/db/users";
 import { seedDefaultHabits } from "@/server/db/habits";
 
 const signupSchema = z.object({
-  username: z.string().min(3).max(32),
+  username: z
+    .string()
+    .min(3)
+    .max(32)
+    .regex(/^[a-zA-Z0-9_-]+$/),
   password: z.string().min(8).max(72),
 });
 
@@ -19,7 +23,7 @@ export async function POST(request: Request) {
   const parsed = signupSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Invalid username (3-32 chars) or password (min 8 chars)" },
+      { error: "Invalid username (3-32 chars, letters/digits/_/- only) or password (min 8 chars)" },
       { status: 400 },
     );
   }

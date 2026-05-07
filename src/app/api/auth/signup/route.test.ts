@@ -46,6 +46,20 @@ describe("POST /api/auth/signup", () => {
     expect(mockSeedDefaultHabits).toHaveBeenCalledWith(42);
   });
 
+  it("rejects usernames with disallowed characters", async () => {
+    const { POST } = await import("./route");
+    const req = new Request("http://localhost/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: "tom@example.com", password: "password123" }),
+    });
+    const res = await POST(req);
+
+    expect(res.status).toBe(400);
+    expect(mockGetUserByUsername).not.toHaveBeenCalled();
+    expect(mockCreateUser).not.toHaveBeenCalled();
+  });
+
   it("does not seed habits if user already exists", async () => {
     mockGetUserByUsername.mockResolvedValue({ id: 1, username: "existinguser" });
 
