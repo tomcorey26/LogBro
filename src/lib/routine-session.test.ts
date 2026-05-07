@@ -98,8 +98,8 @@ describe('computeReplayForward', () => {
 describe('computeSummary', () => {
   it('aggregates completed sets only', () => {
     const sets: RoutineSessionSet[] = [
-      makeSet({ blockIndex: 0, setIndex: 0, habitNameSnapshot: 'Guitar', actualDurationSeconds: 60 }),
-      makeSet({ blockIndex: 0, setIndex: 1, habitNameSnapshot: 'Guitar', actualDurationSeconds: 30 }),
+      makeSet({ blockIndex: 0, setIndex: 0, habitNameSnapshot: 'Guitar', actualDurationSeconds: 60, completedAt: '2026-05-02T00:01:00.000Z' }),
+      makeSet({ blockIndex: 0, setIndex: 1, habitNameSnapshot: 'Guitar', actualDurationSeconds: 30, completedAt: '2026-05-02T00:02:00.000Z' }),
       makeSet({ blockIndex: 1, setIndex: 0, habitNameSnapshot: 'Piano', actualDurationSeconds: 0 }),
       makeSet({ blockIndex: 1, setIndex: 1, habitNameSnapshot: 'Piano', actualDurationSeconds: null }),
     ];
@@ -117,6 +117,44 @@ describe('computeSummary', () => {
     expect(result.byHabit).toEqual([
       { habitName: 'Guitar', sets: 2, totalSeconds: 90 },
     ]);
+  });
+
+  it('excludes sets whose habit was deleted (habitId === null), to match save filter', () => {
+    // If a user deletes a habit mid-session, FK ON DELETE SET NULL clears habitId
+    // on the routine_session_sets row. Save can't insert that row (time_sessions
+    // requires habitId), so the summary must not count it either — otherwise the
+    // user sees "3 sets" on the summary screen but only 2 land in history.
+    const sets: RoutineSessionSet[] = [
+      makeSet({ blockIndex: 0, setIndex: 0, habitId: 1, habitNameSnapshot: 'Guitar', actualDurationSeconds: 60, completedAt: '2026-05-02T00:01:00.000Z' }),
+      makeSet({ blockIndex: 0, setIndex: 1, habitId: null, habitNameSnapshot: 'Guitar', actualDurationSeconds: 30, completedAt: '2026-05-02T00:02:00.000Z' }),
+    ];
+    const result = computeSummary({
+      routineNameSnapshot: 'Morning',
+      sets,
+      startedAt: '2026-05-02T00:00:00.000Z',
+      finishedAt: '2026-05-02T00:03:00.000Z',
+    });
+    expect(result.completedSetCount).toBe(1);
+    expect(result.totalActiveSeconds).toBe(60);
+    expect(result.byHabit).toEqual([
+      { habitName: 'Guitar', sets: 1, totalSeconds: 60 },
+    ]);
+  });
+
+  it('excludes sets with actualDurationSeconds set but no completedAt (defensive)', () => {
+    // In production these are co-set, but the summary should defensively reject
+    // half-completed rows so its "completed" definition matches save's.
+    const sets: RoutineSessionSet[] = [
+      makeSet({ blockIndex: 0, setIndex: 0, habitId: 1, habitNameSnapshot: 'Guitar', actualDurationSeconds: 60, completedAt: '2026-05-02T00:01:00.000Z' }),
+      makeSet({ blockIndex: 0, setIndex: 1, habitId: 1, habitNameSnapshot: 'Guitar', actualDurationSeconds: 30, completedAt: null }),
+    ];
+    const result = computeSummary({
+      routineNameSnapshot: 'Morning',
+      sets,
+      startedAt: '2026-05-02T00:00:00.000Z',
+      finishedAt: '2026-05-02T00:03:00.000Z',
+    });
+    expect(result.completedSetCount).toBe(1);
   });
 });
 

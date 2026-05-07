@@ -50,8 +50,15 @@ export function computeSummary(input: {
   startedAt: string;
   finishedAt: string;
 }): RoutineSessionSummary {
+  // Filter must match saveActiveRoutineSessionForUser's filter exactly. If the
+  // summary counted a row that save can't persist (deleted habit → habitId
+  // null; or half-completed row), the user would see N sets here and N-1 in
+  // history. Keep the two filters in lockstep.
   const completed = input.sets.filter(
-    (s) => (s.actualDurationSeconds ?? 0) > 0,
+    (s) =>
+      s.completedAt !== null &&
+      s.habitId !== null &&
+      (s.actualDurationSeconds ?? 0) > 0,
   );
   const totalActiveSeconds = completed.reduce(
     (sum, s) => sum + (s.actualDurationSeconds ?? 0),
