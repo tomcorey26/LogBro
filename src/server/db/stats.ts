@@ -37,49 +37,52 @@ export async function getStatsForUser(userId: number): Promise<Stats> {
   const monthStart = new Date(now.getTime() - 30 * DAY_SECONDS * 1000);
 
   const dateExpr = sql<string>`strftime('%Y-%m-%d', ${timeSessions.endTime}, 'unixepoch')`;
-  const sumExpr = sql<number>`sum(${timeSessions.durationSeconds})`;
+  const recentSumExpr = sql<number>`sum(${timeSessions.durationSeconds})`;
+  const rankingSumExpr = sql<number>`sum(${timeSessions.durationSeconds})`;
 
-  // 1. Lifetime totals
-  const lifetimeRow = await db
-    .select({
-      totalSeconds: sql<number>`coalesce(sum(${timeSessions.durationSeconds}), 0)`,
-      totalSessions: sql<number>`count(*)`,
-    })
-    .from(timeSessions)
-    .innerJoin(habits, eq(timeSessions.habitId, habits.id))
-    .where(eq(habits.userId, userId))
-    .get();
+  const [lifetimeRow, recentRows, allDateRows, rankingRows] = await Promise.all([
+    // 1. Lifetime totals
+    db
+      .select({
+        totalSeconds: sql<number>`coalesce(sum(${timeSessions.durationSeconds}), 0)`,
+        totalSessions: sql<number>`count(*)`,
+      })
+      .from(timeSessions)
+      .innerJoin(habits, eq(timeSessions.habitId, habits.id))
+      .where(eq(habits.userId, userId))
+      .get(),
 
-  // 2. Recent (371d) per-day aggregate — heat map + week/month + current streak
-  const recentRows = await db
-    .select({
-      date: dateExpr.as("date"),
-      seconds: sumExpr.as("seconds"),
-    })
-    .from(timeSessions)
-    .innerJoin(habits, eq(timeSessions.habitId, habits.id))
-    .where(and(eq(habits.userId, userId), gte(timeSessions.endTime, heatmapStart)))
-    .groupBy(dateExpr);
+    // 2. Recent (371d) per-day aggregate — heat map + week/month + current streak
+    db
+      .select({
+        date: dateExpr.as("date"),
+        seconds: recentSumExpr.as("seconds"),
+      })
+      .from(timeSessions)
+      .innerJoin(habits, eq(timeSessions.habitId, habits.id))
+      .where(and(eq(habits.userId, userId), gte(timeSessions.endTime, heatmapStart)))
+      .groupBy(dateExpr),
 
-  // 3. All-history distinct date keys — longest streak only
-  const allDateRows = await db
-    .selectDistinct({ date: dateExpr.as("date") })
-    .from(timeSessions)
-    .innerJoin(habits, eq(timeSessions.habitId, habits.id))
-    .where(eq(habits.userId, userId));
+    // 3. All-history distinct date keys — longest streak only
+    db
+      .selectDistinct({ date: dateExpr.as("date") })
+      .from(timeSessions)
+      .innerJoin(habits, eq(timeSessions.habitId, habits.id))
+      .where(eq(habits.userId, userId)),
 
-  // 4. Rankings (inlined from former getRankingsForUser)
-  const rankingRows = await db
-    .select({
-      habitId: habits.id,
-      habitName: habits.name,
-      totalSeconds: sumExpr.as("total_seconds"),
-    })
-    .from(timeSessions)
-    .innerJoin(habits, eq(timeSessions.habitId, habits.id))
-    .where(eq(habits.userId, userId))
-    .groupBy(habits.id, habits.name)
-    .orderBy(desc(sumExpr));
+    // 4. Rankings (inlined from former getRankingsForUser; cleaned up in Task 15)
+    db
+      .select({
+        habitId: habits.id,
+        habitName: habits.name,
+        totalSeconds: rankingSumExpr.as("total_seconds"),
+      })
+      .from(timeSessions)
+      .innerJoin(habits, eq(timeSessions.habitId, habits.id))
+      .where(eq(habits.userId, userId))
+      .groupBy(habits.id, habits.name)
+      .orderBy(desc(rankingSumExpr)),
+  ]);
 
   // ─── Assemble ───
   const secondsByDate: Record<string, number> = {};
