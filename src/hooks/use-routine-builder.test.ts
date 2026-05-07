@@ -215,6 +215,57 @@ describe("useRoutineBuilder", () => {
     });
   });
 
+  describe("reorderBlocks", () => {
+    it("replaces blocks with the supplied order and marks dirty", () => {
+      const { result } = createHook();
+      act(() => {
+        result.current.addBlock({
+          habitId: 1, habitName: "Guitar", notes: null,
+          sets: [{ durationSeconds: 1500, breakSeconds: 300 }],
+        });
+      });
+      act(() => {
+        result.current.addBlock({
+          habitId: 2, habitName: "Reading", notes: null,
+          sets: [{ durationSeconds: 900, breakSeconds: 0 }],
+        });
+      });
+      act(() => {
+        const [a, b] = result.current.blocks;
+        result.current.reorderBlocks([b, a]);
+      });
+      expect(result.current.blocks[0].habitName).toBe("Reading");
+      expect(result.current.blocks[1].habitName).toBe("Guitar");
+      expect(result.current.isDirty).toBe(true);
+    });
+
+    it("toPayload returns sortOrder matching the new order after reorder", () => {
+      const { result } = createHook();
+      act(() => result.current.setName("Morning"));
+      act(() => {
+        result.current.addBlock({
+          habitId: 1, habitName: "Guitar", notes: null,
+          sets: [{ durationSeconds: 1500, breakSeconds: 300 }],
+        });
+      });
+      act(() => {
+        result.current.addBlock({
+          habitId: 2, habitName: "Reading", notes: null,
+          sets: [{ durationSeconds: 900, breakSeconds: 0 }],
+        });
+      });
+      act(() => {
+        const [a, b] = result.current.blocks;
+        result.current.reorderBlocks([b, a]);
+      });
+      const payload = result.current.toPayload();
+      expect(payload.blocks.map((x) => ({ habitId: x.habitId, sortOrder: x.sortOrder }))).toEqual([
+        { habitId: 2, sortOrder: 0 },
+        { habitId: 1, sortOrder: 1 },
+      ]);
+    });
+  });
+
   describe("toPayload", () => {
     it("converts state to API payload", () => {
       const { result } = createHook();

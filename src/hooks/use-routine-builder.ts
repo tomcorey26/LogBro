@@ -167,6 +167,11 @@ export function useRoutineBuilder(
     setIsDirty(true);
   }
 
+  function reorderBlocks(newBlocks: BuilderBlock[]) {
+    setBlocks(newBlocks);
+    setIsDirty(true);
+  }
+
   function toPayload() {
     return {
       name,
@@ -201,6 +206,7 @@ export function useRoutineBuilder(
     updateSetDuration,
     updateSetBreak,
     moveBlock,
+    reorderBlocks,
     toPayload,
   };
 }
