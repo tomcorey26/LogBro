@@ -176,11 +176,6 @@ const DEFAULT_HABITS = [
   "Guitar",
   "Painting",
   "Reading",
-  "Exercise",
-  "Writing",
-  "Cooking",
-  "Language Study",
-  "Chess",
 ];
 
 export type SeededHabit = { id: number; name: string };
