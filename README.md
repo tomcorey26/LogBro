@@ -85,7 +85,7 @@ src/
 
 Building this taught me a lot about real-time state sync (keeping a running timer consistent between client, server, and database), optimistic UI updates with TanStack Query, and structuring a Next.js app that feels snappy as a native mobile app (PWA + haptic feedback + smooth animations).
 
-I also learned how to work with AI agents in a way that produces good results. I utilized agent skills (https://github.com/obra/superpowers has lead to amazing results), context management, validation with linting/tests, a TTS mic input for prompting, claude code review for PRs. It is undeniable that this new AI tooling is incredibly useful, to build this app it was 95% prompting and 5% hand coding.
+I also learned how to work with AI agents in a way that produces good results. I utilized agent skills (https://github.com/obra/superpowers has lead to amazing results), context management, validation with linting/tests, a TTS mic input for prompting, claude code review for PRs. It is undeniable that this new AI tooling is incredibly useful.
 
 ---
 
