@@ -221,6 +221,7 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
               onUpdateDuration={updateSetDuration}
               onUpdateBreak={updateSetBreak}
               onUpdateNotes={updateBlockNotes}
+              onReplace={() => {}}
               onMoveUp={i > 0 ? () => moveBlock(i, i - 1) : undefined}
               onMoveDown={i < blocks.length - 1 ? () => moveBlock(i, i + 1) : undefined}
             />
@@ -311,6 +312,7 @@ type ReorderableBlockProps = {
   onUpdateDuration: (clientId: string, setIndex: number, durationSeconds: number) => void;
   onUpdateBreak: (clientId: string, setIndex: number, breakSeconds: number) => void;
   onUpdateNotes: (clientId: string, notes: string) => void;
+  onReplace: () => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
 };

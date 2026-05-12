@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,14 +16,23 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Trash2,
   Pause,
   NotebookPen,
   Plus,
   MinusCircle,
   GripVertical,
-  ChevronUp,
-  ChevronDown,
+  MoreHorizontal,
+  ArrowUp,
+  ArrowDown,
+  Repeat2,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { DragControls } from "framer-motion";
@@ -52,6 +62,7 @@ type EditableProps = {
     breakSeconds: number,
   ) => void;
   onUpdateNotes: (clientId: string, notes: string) => void;
+  onReplace: () => void;
   dragControls?: DragControls;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
@@ -118,6 +129,7 @@ export function RoutineBlockCard(props: Props) {
     );
   }
 
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const { block, mode } = props;
   const isEditable = mode === "editable";
   const dragControls = isEditable ? (props as EditableProps).dragControls : undefined;
@@ -145,31 +157,52 @@ export function RoutineBlockCard(props: Props) {
           </h3>
         </div>
         {isEditable && (
-          <div className="flex items-center gap-0">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Move block up"
-              disabled={!onMoveUp}
-              onClick={() => onMoveUp?.()}
-            >
-              <ChevronUp className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Move block down"
-              disabled={!onMoveDown}
-              onClick={() => onMoveDown?.()}
-            >
-              <ChevronDown className="h-4 w-4" />
-            </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="icon-sm" aria-label="Delete block">
-                  <Trash2 className="h-4 w-4" />
+          <>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Block actions"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
                 </Button>
-              </AlertDialogTrigger>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  disabled={!onMoveUp}
+                  onSelect={() => onMoveUp?.()}
+                >
+                  <ArrowUp className="h-4 w-4" />
+                  Move up
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={!onMoveDown}
+                  onSelect={() => onMoveDown?.()}
+                >
+                  <ArrowDown className="h-4 w-4" />
+                  Move down
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => (props as EditableProps).onReplace()}
+                >
+                  <Repeat2 className="h-4 w-4" />
+                  Replace habit
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    setDeleteOpen(true);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
               <AlertDialogContent size="sm">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Remove block?</AlertDialogTitle>
@@ -191,7 +224,7 @@ export function RoutineBlockCard(props: Props) {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-          </div>
+          </>
         )}
       </div>
 
