@@ -136,6 +136,7 @@ export function RoutineBlockCard(props: Props) {
   const dragControls = isEditable ? (props as EditableProps).dragControls : undefined;
   const onMoveUp = isEditable ? (props as EditableProps).onMoveUp : undefined;
   const onMoveDown = isEditable ? (props as EditableProps).onMoveDown : undefined;
+  const onReplace = isEditable ? (props as EditableProps).onReplace : undefined;
   const maxSets = block.sets.length >= 10;
 
   return (
@@ -185,7 +186,7 @@ export function RoutineBlockCard(props: Props) {
                   Move down
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onSelect={() => (props as EditableProps).onReplace()}
+                  onSelect={() => onReplace?.()}
                 >
                   <Repeat2 className="h-4 w-4" />
                   Replace habit
