@@ -33,8 +33,11 @@ describe('ThemeProvider', () => {
     expect(document.documentElement.classList.contains('dark')).toBe(false);
   });
 
-  it('reads stored dark preference on mount', () => {
+  it('syncs to dark when the pre-hydration script set the class', () => {
+    // The pre-hydration script in app/layout.tsx adds this class before
+    // React hydrates. We simulate that here.
     localStorage.setItem(STORAGE_KEY, 'dark');
+    document.documentElement.classList.add('dark');
     let captured: ReturnType<typeof useTheme> | undefined;
     render(
       <ThemeProvider>
@@ -55,9 +58,11 @@ describe('ThemeProvider', () => {
     act(() => { captured!.setTheme('dark'); });
     expect(localStorage.getItem(STORAGE_KEY)).toBe('dark');
     expect(document.documentElement.classList.contains('dark')).toBe(true);
+    expect(captured?.theme).toBe('dark');
 
     act(() => { captured!.setTheme('light'); });
     expect(localStorage.getItem(STORAGE_KEY)).toBe('light');
     expect(document.documentElement.classList.contains('dark')).toBe(false);
+    expect(captured?.theme).toBe('light');
   });
 });

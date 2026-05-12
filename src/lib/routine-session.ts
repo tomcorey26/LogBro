@@ -38,9 +38,13 @@ export function computeReplayForward(
   now: Date,
 ): ReplayAction {
   if (!timer) return { action: 'stable' };
+
   const elapsed = (now.getTime() - new Date(timer.startTime).getTime()) / 1000;
+
   if (elapsed < timer.targetDurationSeconds) return { action: 'stable' };
+
   if (timer.phase === 'set') return { action: 'complete-set', setRowId: timer.routineSessionSetId };
+
   return { action: 'complete-break' };
 }
 

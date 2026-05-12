@@ -69,9 +69,12 @@ export function useStartSet() {
   });
 }
 
+export const completeSetMutationKey = ['routine', 'complete-set'] as const;
+
 export function useCompleteSet() {
   const qc = useQueryClient();
   return useMutation({
+    mutationKey: completeSetMutationKey,
     mutationFn: (vars: { setRowId: number; endedEarlyAt?: string }) =>
       api<SessionResp>(`/api/routines/active/sets/${vars.setRowId}/complete`, {
         method: 'POST',
@@ -111,9 +114,12 @@ export function useSkipBreak() {
   });
 }
 
+export const completeBreakMutationKey = ['routine', 'complete-break'] as const;
+
 export function useCompleteBreak() {
   const qc = useQueryClient();
   return useMutation({
+    mutationKey: completeBreakMutationKey,
     mutationFn: () =>
       api<SessionResp>('/api/routines/active/break/complete', { method: 'POST' }),
     onSuccess: () => {
