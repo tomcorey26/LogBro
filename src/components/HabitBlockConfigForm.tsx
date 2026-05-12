@@ -21,17 +21,30 @@ type HabitBlockConfigFormProps = {
     notes: string | null;
   }) => void;
   onBack: () => void;
+  initialValues?: {
+    sets: number;
+    durationMinutes: number;
+    breakMinutes: number;
+    notes: string | null;
+  };
+  submitLabel?: string;
 };
 
 export function HabitBlockConfigForm({
   habitName,
   onAdd,
   onBack,
+  initialValues,
+  submitLabel = "Add to Routine",
 }: HabitBlockConfigFormProps) {
-  const [sets, setSets] = useState(3);
-  const [durationMinutes, setDurationMinutes] = useState(25);
-  const [breakMinutes, setBreakMinutes] = useState(5);
-  const [notes, setNotes] = useState("");
+  const [sets, setSets] = useState(initialValues?.sets ?? 3);
+  const [durationMinutes, setDurationMinutes] = useState(
+    initialValues?.durationMinutes ?? 25
+  );
+  const [breakMinutes, setBreakMinutes] = useState(
+    initialValues?.breakMinutes ?? 5
+  );
+  const [notes, setNotes] = useState(initialValues?.notes ?? "");
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -43,7 +56,13 @@ export function HabitBlockConfigForm({
     });
   }
 
-  const isValid = sets >= 1 && sets <= 10 && durationMinutes >= 1 && durationMinutes <= 120 && breakMinutes >= 0 && breakMinutes <= 60;
+  const isValid =
+    sets >= 1 &&
+    sets <= 10 &&
+    durationMinutes >= 1 &&
+    durationMinutes <= 120 &&
+    breakMinutes >= 0 &&
+    breakMinutes <= 60;
 
   return (
     <form onSubmit={handleSubmit} className="contents">
@@ -107,7 +126,7 @@ export function HabitBlockConfigForm({
           Cancel
         </Button>
         <Button type="submit" disabled={!isValid}>
-          Add to Routine
+          {submitLabel}
         </Button>
       </DialogFooter>
     </form>
