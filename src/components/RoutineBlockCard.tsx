@@ -98,6 +98,8 @@ function formatMinutes(seconds: number): string {
 }
 
 export function RoutineBlockCard(props: Props) {
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
   if (props.mode === "active") {
     return (
       <Card className="overflow-hidden pb-0">
@@ -129,7 +131,6 @@ export function RoutineBlockCard(props: Props) {
     );
   }
 
-  const [deleteOpen, setDeleteOpen] = useState(false);
   const { block, mode } = props;
   const isEditable = mode === "editable";
   const dragControls = isEditable ? (props as EditableProps).dragControls : undefined;
