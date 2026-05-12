@@ -33,6 +33,16 @@ type PickerView =
   | { type: "list" }
   | { type: "config"; habitId: number; habitName: string };
 
+type PickerMode =
+  | { kind: "closed" }
+  | { kind: "add"; view: PickerView }
+  | {
+      kind: "replace";
+      clientId: string;
+      habitName: string;
+      view: PickerView;
+    };
+
 type RoutineBuilderProps = {
   mode: "create" | "edit";
   initialHabits?: Habit[];
@@ -56,6 +66,7 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
     setName,
     addBlock,
     removeBlock,
+    replaceBlock,
     updateBlockNotes,
     addSet,
     removeSet,
@@ -66,8 +77,7 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
     toPayload,
   } = builder;
 
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const [pickerView, setPickerView] = useState<PickerView>({ type: "list" });
+  const [pickerMode, setPickerMode] = useState<PickerMode>({ kind: "closed" });
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [pendingNavigate, setPendingNavigate] = useState<(() => void) | null>(null);
@@ -145,33 +155,63 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
     }
   }
 
-  function handleSelectHabit(habit: { id: number; name: string }) {
-    setPickerView({ type: "config", habitId: habit.id, habitName: habit.name });
+  function handleOpenPicker() {
+    setPickerMode({ kind: "add", view: { type: "list" } });
   }
 
-  function handleAddBlock(config: {
+  function handleOpenReplace(block: BuilderBlock) {
+    setPickerMode({
+      kind: "replace",
+      clientId: block.clientId,
+      habitName: block.habitName,
+      view: { type: "list" },
+    });
+  }
+
+  function handleSelectHabit(habit: { id: number; name: string }) {
+    setPickerMode((current) => {
+      if (current.kind === "closed") return current;
+      return {
+        ...current,
+        view: { type: "config", habitId: habit.id, habitName: habit.name },
+      };
+    });
+  }
+
+  function handleSubmitConfig(config: {
     sets: number;
     durationMinutes: number;
     breakMinutes: number;
     notes: string | null;
   }) {
-    if (pickerView.type !== "config") return;
-    addBlock({
-      habitId: pickerView.habitId,
-      habitName: pickerView.habitName,
+    if (pickerMode.kind === "closed" || pickerMode.view.type !== "config") return;
+    const payload = {
+      habitId: pickerMode.view.habitId,
+      habitName: pickerMode.view.habitName,
       notes: config.notes,
       sets: Array.from({ length: config.sets }, () => ({
         durationSeconds: config.durationMinutes * 60,
         breakSeconds: config.breakMinutes * 60,
       })),
-    });
+    };
+    if (pickerMode.kind === "add") {
+      addBlock(payload);
+    } else {
+      replaceBlock(pickerMode.clientId, payload);
+    }
     trigger("success");
-    setPickerOpen(false);
+    setPickerMode({ kind: "closed" });
   }
 
-  function handleOpenPicker() {
-    setPickerView({ type: "list" });
-    setPickerOpen(true);
+  function handleClosePicker(open: boolean) {
+    if (!open) setPickerMode({ kind: "closed" });
+  }
+
+  function handleBackFromConfig() {
+    setPickerMode((current) => {
+      if (current.kind === "closed") return current;
+      return { ...current, view: { type: "list" } };
+    });
   }
 
   async function handleCreateHabit(habitName: string) {
@@ -221,6 +261,7 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
               onUpdateDuration={updateSetDuration}
               onUpdateBreak={updateSetBreak}
               onUpdateNotes={updateBlockNotes}
+              onReplace={() => handleOpenReplace(block)}
               onMoveUp={i > 0 ? () => moveBlock(i, i - 1) : undefined}
               onMoveDown={i < blocks.length - 1 ? () => moveBlock(i, i + 1) : undefined}
             />
@@ -240,21 +281,33 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
       </div>
 
       {/* Habit picker dialog */}
-      <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+      <Dialog open={pickerMode.kind !== "closed"} onOpenChange={handleClosePicker}>
         <DialogContent>
-          {pickerView.type === "list" ? (
+          {pickerMode.kind !== "closed" && pickerMode.view.type === "list" ? (
             <HabitPicker
               habits={habits}
               onSelectHabit={handleSelectHabit}
               onCreateHabit={handleCreateHabit}
+              title={
+                pickerMode.kind === "replace"
+                  ? `Replace "${pickerMode.habitName}"`
+                  : "Select Habit"
+              }
             />
-          ) : (
+          ) : pickerMode.kind !== "closed" && pickerMode.view.type === "config" ? (
             <HabitBlockConfigForm
-              habitName={pickerView.habitName}
-              onAdd={handleAddBlock}
-              onBack={() => setPickerView({ type: "list" })}
+              key={`${pickerMode.kind}-${pickerMode.view.habitId}`}
+              habitName={pickerMode.view.habitName}
+              onAdd={handleSubmitConfig}
+              onBack={handleBackFromConfig}
+              initialValues={
+                pickerMode.kind === "replace"
+                  ? deriveInitialValuesFromBlock(blocks, pickerMode.clientId)
+                  : undefined
+              }
+              submitLabel={pickerMode.kind === "replace" ? "Replace" : "Add to Routine"}
             />
-          )}
+          ) : null}
         </DialogContent>
       </Dialog>
 
@@ -303,6 +356,26 @@ export function RoutineBuilder({ mode, initialHabits, builder }: RoutineBuilderP
   );
 }
 
+function deriveInitialValuesFromBlock(
+  blocks: BuilderBlock[],
+  clientId: string,
+): {
+  sets: number;
+  durationMinutes: number;
+  breakMinutes: number;
+  notes: string | null;
+} | undefined {
+  const block = blocks.find((b) => b.clientId === clientId);
+  if (!block) return undefined;
+  const first = block.sets[0];
+  return {
+    sets: block.sets.length,
+    durationMinutes: Math.round(first.durationSeconds / 60),
+    breakMinutes: Math.round(first.breakSeconds / 60),
+    notes: block.notes,
+  };
+}
+
 type ReorderableBlockProps = {
   block: BuilderBlock;
   onRemoveBlock: (clientId: string) => void;
@@ -311,6 +384,7 @@ type ReorderableBlockProps = {
   onUpdateDuration: (clientId: string, setIndex: number, durationSeconds: number) => void;
   onUpdateBreak: (clientId: string, setIndex: number, breakSeconds: number) => void;
   onUpdateNotes: (clientId: string, notes: string) => void;
+  onReplace: () => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
 };

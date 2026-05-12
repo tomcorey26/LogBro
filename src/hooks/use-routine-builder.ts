@@ -78,6 +78,26 @@ export function useRoutineBuilder(
     setIsDirty(true);
   }
 
+  function replaceBlock(
+    clientId: string,
+    input: { habitId: number; habitName: string; notes: string | null; sets: RoutineSet[] }
+  ) {
+    setBlocks((prev) =>
+      prev.map((b) =>
+        b.clientId === clientId
+          ? {
+              ...b,
+              habitId: input.habitId,
+              habitName: input.habitName,
+              notes: input.notes,
+              sets: input.sets.map((s) => ({ ...s, clientId: generateId() })),
+            }
+          : b
+      )
+    );
+    setIsDirty(true);
+  }
+
   function updateBlockNotes(clientId: string, notes: string) {
     setBlocks((prev) =>
       prev.map((b) => (b.clientId === clientId ? { ...b, notes } : b))
@@ -200,6 +220,7 @@ export function useRoutineBuilder(
     setName,
     addBlock,
     removeBlock,
+    replaceBlock,
     updateBlockNotes,
     addSet,
     removeSet,

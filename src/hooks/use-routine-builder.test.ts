@@ -288,4 +288,105 @@ describe("useRoutineBuilder", () => {
       });
     });
   });
+
+  describe("replaceBlock", () => {
+    it("swaps habitId/habitName/notes/sets in place and marks dirty", () => {
+      const { result } = createHook();
+      act(() =>
+        result.current.addBlock({
+          habitId: 1, habitName: "Guitar", notes: "Scales",
+          sets: [{ durationSeconds: 1500, breakSeconds: 300 }],
+        })
+      );
+      const originalClientId = result.current.blocks[0].clientId;
+
+      act(() =>
+        result.current.replaceBlock(originalClientId, {
+          habitId: 2,
+          habitName: "Reading",
+          notes: "Chapter 3",
+          sets: [
+            { durationSeconds: 900, breakSeconds: 0 },
+            { durationSeconds: 900, breakSeconds: 0 },
+          ],
+        })
+      );
+
+      expect(result.current.blocks).toHaveLength(1);
+      expect(result.current.blocks[0].clientId).toBe(originalClientId);
+      expect(result.current.blocks[0].habitId).toBe(2);
+      expect(result.current.blocks[0].habitName).toBe("Reading");
+      expect(result.current.blocks[0].notes).toBe("Chapter 3");
+      expect(result.current.blocks[0].sets).toHaveLength(2);
+      expect(result.current.blocks[0].sets[0].durationSeconds).toBe(900);
+      expect(result.current.isDirty).toBe(true);
+    });
+
+    it("preserves block position when other blocks exist", () => {
+      const { result } = createHook();
+      act(() => {
+        result.current.addBlock({
+          habitId: 1, habitName: "Guitar", notes: null,
+          sets: [{ durationSeconds: 1500, breakSeconds: 300 }],
+        });
+      });
+      act(() => {
+        result.current.addBlock({
+          habitId: 2, habitName: "Reading", notes: null,
+          sets: [{ durationSeconds: 900, breakSeconds: 0 }],
+        });
+      });
+      act(() => {
+        result.current.addBlock({
+          habitId: 3, habitName: "Pushups", notes: null,
+          sets: [{ durationSeconds: 60, breakSeconds: 30 }],
+        });
+      });
+
+      const middleClientId = result.current.blocks[1].clientId;
+      act(() =>
+        result.current.replaceBlock(middleClientId, {
+          habitId: 9,
+          habitName: "Meditation",
+          notes: null,
+          sets: [{ durationSeconds: 600, breakSeconds: 0 }],
+        })
+      );
+
+      expect(result.current.blocks.map((b) => b.habitName)).toEqual([
+        "Guitar",
+        "Meditation",
+        "Pushups",
+      ]);
+      expect(result.current.blocks[1].clientId).toBe(middleClientId);
+    });
+
+    it("generates fresh clientIds for the new sets", () => {
+      const { result } = createHook();
+      act(() =>
+        result.current.addBlock({
+          habitId: 1, habitName: "Guitar", notes: null,
+          sets: [
+            { durationSeconds: 1500, breakSeconds: 300 },
+            { durationSeconds: 1500, breakSeconds: 300 },
+          ],
+        })
+      );
+      const oldSetClientIds = result.current.blocks[0].sets.map((s) => s.clientId);
+
+      act(() =>
+        result.current.replaceBlock(result.current.blocks[0].clientId, {
+          habitId: 2,
+          habitName: "Reading",
+          notes: null,
+          sets: [{ durationSeconds: 900, breakSeconds: 0 }],
+        })
+      );
+
+      const newSetClientIds = result.current.blocks[0].sets.map((s) => s.clientId);
+      for (const id of newSetClientIds) {
+        expect(oldSetClientIds).not.toContain(id);
+      }
+    });
+  });
 });

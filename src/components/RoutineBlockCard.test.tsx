@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import type { DragControls } from 'framer-motion';
 import { RoutineBlockCard } from './RoutineBlockCard';
@@ -21,6 +22,7 @@ const noopHandlers = {
   onUpdateDuration: () => {},
   onUpdateBreak: () => {},
   onUpdateNotes: () => {},
+  onReplace: () => {},
 };
 
 function fakeDragControls(): DragControls {
@@ -47,7 +49,15 @@ describe('RoutineBlockCard editable', () => {
     expect(screen.queryByRole('button', { name: /reorder block/i })).not.toBeInTheDocument();
   });
 
-  it('renders enabled Move up button when onMoveUp provided', async () => {
+  it('renders the block actions overflow trigger', () => {
+    render(
+      <RoutineBlockCard block={baseBlock} mode="editable" {...noopHandlers} />
+    );
+    expect(screen.getByRole('button', { name: /block actions/i })).toBeInTheDocument();
+  });
+
+  it('Move up menu item is enabled and calls onMoveUp when onMoveUp provided', async () => {
+    const user = userEvent.setup();
     const onMoveUp = vi.fn();
     render(
       <RoutineBlockCard
@@ -57,20 +67,25 @@ describe('RoutineBlockCard editable', () => {
         {...noopHandlers}
       />
     );
-    const btn = screen.getByRole('button', { name: /move block up/i });
-    expect(btn).toBeEnabled();
-    btn.click();
-    expect(onMoveUp).toHaveBeenCalled();
+    await user.click(screen.getByRole('button', { name: /block actions/i }));
+    const item = await screen.findByRole('menuitem', { name: /move up/i });
+    expect(item).not.toHaveAttribute('data-disabled');
+    await user.click(item);
+    expect(onMoveUp).toHaveBeenCalledTimes(1);
   });
 
-  it('renders disabled Move up button when onMoveUp missing', () => {
+  it('Move up menu item is disabled when onMoveUp is missing', async () => {
+    const user = userEvent.setup();
     render(
       <RoutineBlockCard block={baseBlock} mode="editable" {...noopHandlers} />
     );
-    expect(screen.getByRole('button', { name: /move block up/i })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: /block actions/i }));
+    const item = await screen.findByRole('menuitem', { name: /move up/i });
+    expect(item).toHaveAttribute('data-disabled');
   });
 
-  it('renders enabled Move down button when onMoveDown provided', async () => {
+  it('Move down menu item is enabled and calls onMoveDown when onMoveDown provided', async () => {
+    const user = userEvent.setup();
     const onMoveDown = vi.fn();
     render(
       <RoutineBlockCard
@@ -80,16 +95,47 @@ describe('RoutineBlockCard editable', () => {
         {...noopHandlers}
       />
     );
-    const btn = screen.getByRole('button', { name: /move block down/i });
-    expect(btn).toBeEnabled();
-    btn.click();
-    expect(onMoveDown).toHaveBeenCalled();
+    await user.click(screen.getByRole('button', { name: /block actions/i }));
+    const item = await screen.findByRole('menuitem', { name: /move down/i });
+    expect(item).not.toHaveAttribute('data-disabled');
+    await user.click(item);
+    expect(onMoveDown).toHaveBeenCalledTimes(1);
   });
 
-  it('renders disabled Move down button when onMoveDown missing', () => {
+  it('Move down menu item is disabled when onMoveDown is missing', async () => {
+    const user = userEvent.setup();
     render(
       <RoutineBlockCard block={baseBlock} mode="editable" {...noopHandlers} />
     );
-    expect(screen.getByRole('button', { name: /move block down/i })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: /block actions/i }));
+    const item = await screen.findByRole('menuitem', { name: /move down/i });
+    expect(item).toHaveAttribute('data-disabled');
+  });
+
+  it('Replace habit menu item calls onReplace', async () => {
+    const user = userEvent.setup();
+    const onReplace = vi.fn();
+    render(
+      <RoutineBlockCard
+        block={baseBlock}
+        mode="editable"
+        {...noopHandlers}
+        onReplace={onReplace}
+      />
+    );
+    await user.click(screen.getByRole('button', { name: /block actions/i }));
+    await user.click(await screen.findByRole('menuitem', { name: /replace habit/i }));
+    expect(onReplace).toHaveBeenCalledTimes(1);
+  });
+
+  it('Delete menu item opens the destructive confirmation dialog', async () => {
+    const user = userEvent.setup();
+    render(
+      <RoutineBlockCard block={baseBlock} mode="editable" {...noopHandlers} />
+    );
+    await user.click(screen.getByRole('button', { name: /block actions/i }));
+    await user.click(await screen.findByRole('menuitem', { name: /^delete$/i }));
+    expect(await screen.findByRole('alertdialog')).toBeInTheDocument();
+    expect(screen.getByText(/remove block\?/i)).toBeInTheDocument();
   });
 });

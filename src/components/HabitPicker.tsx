@@ -17,12 +17,14 @@ type HabitPickerProps = {
   habits: Habit[];
   onSelectHabit: (habit: { id: number; name: string }) => void;
   onCreateHabit: (name: string) => Promise<void>;
+  title?: string;
 };
 
 export function HabitPicker({
   habits,
   onSelectHabit,
   onCreateHabit,
+  title = "Select Habit",
 }: HabitPickerProps) {
   const [search, setSearch] = useState("");
 
@@ -33,7 +35,7 @@ export function HabitPicker({
   return (
     <>
       <DialogHeader className="justify-between">
-        <DialogTitle>Select Habit</DialogTitle>
+        <DialogTitle>{title}</DialogTitle>
         <DialogClose asChild>
           <Button variant="ghost" size="icon-sm">
             <X className="h-4 w-4" />
